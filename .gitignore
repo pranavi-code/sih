@@ -1,0 +1,49 @@
+# Ignore Python virtual environments
+backend/venv/
+
+# Ignore node modules
+frontend/node_modules/
+
+# Ignore build and cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore logs and temp files
+*.log
+logs/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore model weights and large data
+models/
+data/
+
+# Ignore environment files
+.env
+
+# Ignore IDE and editor folders
+.vscode/
+.idea/
+
+# Ignore test images and backups
+test-images/
+backups/
+
+# Ignore Docker volumes
+mongodb_data/
+redis_data/
+
+# Ignore coverage and test output
+coverage/
+*.coverage
+
+# Ignore frontend build output
+frontend/build/
+
+# Ignore deployment artifacts
+deployment/*.tar
+deployment/*.zip
