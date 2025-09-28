@@ -15,7 +15,7 @@ from typing import List, Optional
 import logging
 
 from app.core.config import settings
-from app.api.routes import enhancement, detection, metrics, dashboard
+from app.api.routes import enhancement, detection, metrics, dashboard, unified, models
 from app.core.database import init_db
 from app.services.enhancement_service import ImageEnhancementService
 from app.services.threat_detection_service import ThreatDetectionService
@@ -51,6 +51,8 @@ os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Include API routes
+app.include_router(unified.router, prefix="/api/v1", tags=["Unified Processing"])
+app.include_router(models.router, prefix="/api/v1/models", tags=["Model Management"])
 app.include_router(enhancement.router, prefix="/api/v1", tags=["Enhancement"])
 app.include_router(detection.router, prefix="/api/v1", tags=["Detection"])
 app.include_router(metrics.router, prefix="/api/v1", tags=["Metrics"])
@@ -101,6 +103,8 @@ async def root():
         "timestamp": datetime.now().isoformat(),
         "endpoints": {
             "docs": "/docs",
+            "unified_processing": "/api/v1/process_unified",
+            "model_management": "/api/v1/models",
             "enhancement": "/api/v1/enhance",
             "detection": "/api/v1/detect",
             "metrics": "/api/v1/metrics",

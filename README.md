@@ -11,12 +11,14 @@ This is a comprehensive AI-powered system for underwater image enhancement and m
 
 ### 🎯 Key Features
 
-- **GAN-Based Image Enhancement**: Advanced underwater image restoration using Generative Adversarial Networks
-- **Real-Time Threat Detection**: YOLO-based detection of submarines, mines, and other maritime threats
-- **Web Dashboard**: Intuitive React-based interface for system monitoring and control
-- **Edge Device Support**: Optimized models for deployment on AUVs and ROVs
-- **Scalable Architecture**: Microservices-based design with Docker containerization
-- **Analytics & Monitoring**: Comprehensive system performance tracking
+- **🌊 Unified Processing Pipeline**: Combined image enhancement and threat detection in one seamless workflow
+- **🔧 Model Management System**: Download and deploy AI models for different edge device configurations
+- **🤖 GAN-Based Image Enhancement**: Advanced underwater image restoration using Generative Adversarial Networks
+- **🛡️ Real-Time Threat Detection**: YOLO v11-based detection of submarines, mines, divers, and suspicious objects
+- **📊 Interactive Dashboard**: Modern React-based interface with real-time monitoring and analytics
+- **⚡ Edge Device Optimization**: Specialized models for AUV/ROV deployment with hardware acceleration
+- **📱 Responsive Design**: Works seamlessly across desktop, tablet, and mobile devices
+- **🐳 Container Ready**: Docker-based deployment for easy scaling and management
 
 ## 🏗️ Architecture
 
@@ -48,11 +50,42 @@ prototype/
 └── deployment/             # Docker and deployment configs
 ```
 
-## Quick Start
-1. Install dependencies: `pip install -r requirements.txt`
-2. Start backend: `cd backend && python main.py`
-3. Start frontend: `cd frontend && npm start`
-4. Access dashboard: `http://localhost:3000`
+## 🚀 Quick Start
+
+### Option 1: Demo Script (Recommended)
+```bash
+# Windows
+START_DEMO.bat
+
+# Linux/Mac
+chmod +x setup.sh && ./setup.sh
+```
+
+### Option 2: Manual Setup
+```bash
+# 1. Install Python dependencies
+pip install -r requirements.txt
+
+# 2. Install Node.js dependencies
+cd frontend && npm install
+
+# 3. Start backend server
+cd ../backend && python main.py
+
+# 4. Start frontend (new terminal)
+cd frontend && npm start
+
+# 5. Access the system
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:8000
+# API Documentation: http://localhost:8000/docs
+```
+
+### 🌟 New Features
+- **Unified Processing**: `/processing` - Combined enhancement + detection
+- **Model Management**: `/models` - Download AI models for edge devices
+- **Real-time Dashboard**: Live monitoring with threat alerts
+- **Edge Deployment**: Optimized models for AUV/ROV systems
 
 ## Technology Stack
 - **AI/ML**: TensorFlow, PyTorch, OpenCV, YOLO v11

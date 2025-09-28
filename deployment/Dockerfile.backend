@@ -32,7 +32,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Create necessary directories
-RUN mkdir -p uploads enhanced static models/enhancement models/detection
+RUN mkdir -p uploads enhanced static models/enhancement models/detection database edge/optimization_results edge/deployment_results
 
 # Copy application code
 COPY backend/ .

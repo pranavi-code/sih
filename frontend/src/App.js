@@ -7,6 +7,8 @@ import { Box } from '@mui/material';
 // Import components
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
+import UnifiedProcessing from './pages/UnifiedProcessing';
+import ModelManagement from './pages/ModelManagement';
 import ImageEnhancement from './pages/ImageEnhancement';
 import ThreatDetection from './pages/ThreatDetection';
 import Analytics from './pages/Analytics';
@@ -71,6 +73,8 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/processing" element={<UnifiedProcessing />} />
+              <Route path="/models" element={<ModelManagement />} />
               <Route path="/enhancement" element={<ImageEnhancement />} />
               <Route path="/detection" element={<ThreatDetection />} />
               <Route path="/analytics" element={<Analytics />} />

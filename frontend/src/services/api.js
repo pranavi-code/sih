@@ -135,7 +135,55 @@ export const metricsAPI = {
   getBenchmarkResults: () => apiClient.get('/benchmark_results'),
 };
 
-// Main processing endpoint
+// Unified processing API endpoints
+export const unifiedAPI = {
+  processUnified: (file, confidenceThreshold = 0.5, calculateMetrics = true) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('confidence_threshold', confidenceThreshold);
+    formData.append('calculate_metrics', calculateMetrics);
+    
+    return apiClient.post('/process_unified', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  
+  processBatchUnified: (files, confidenceThreshold = 0.5) => {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+    formData.append('confidence_threshold', confidenceThreshold);
+    
+    return apiClient.post('/process_batch_unified', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  
+  getProcessingStats: () => apiClient.get('/processing_stats'),
+  getModelStatus: () => apiClient.get('/model_status'),
+};
+
+// Model management API endpoints
+export const modelAPI = {
+  getAvailableModels: () => apiClient.get('/models/available'),
+  getModelDetails: (modelId) => apiClient.get(`/models/model/${modelId}`),
+  downloadModel: (modelId, deviceType = 'gpu_server') => 
+    apiClient.post(`/models/download/${modelId}?device_type=${deviceType}`),
+  getDownloadStatus: (downloadId) => apiClient.get(`/models/download/status/${downloadId}`),
+  getInstalledModels: () => apiClient.get('/models/installed'),
+  uninstallModel: (modelId, deviceType = 'all') => 
+    apiClient.delete(`/models/installed/${modelId}?device_type=${deviceType}`),
+  getDeviceCompatibility: (deviceType) => apiClient.get(`/models/device_compatibility/${deviceType}`),
+  optimizeModel: (modelId, deviceType) => 
+    apiClient.post(`/models/optimize/${modelId}?device_type=${deviceType}`),
+};
+
+// Main processing endpoint (legacy)
 export const processAPI = {
   processImage: (file, enhanceOnly = false) => {
     const formData = new FormData();
@@ -213,6 +261,8 @@ export default {
   enhancementAPI,
   detectionAPI,
   metricsAPI,
+  unifiedAPI,
+  modelAPI,
   processAPI,
   utils,
 };

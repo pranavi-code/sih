@@ -17,6 +17,8 @@ import {
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
+  AutoFixHigh as AutoFixHighIcon,
+  Memory as MemoryIcon,
   PhotoCamera as PhotoCameraIcon,
   Security as SecurityIcon,
   Analytics as AnalyticsIcon,
@@ -38,6 +40,8 @@ const Navbar = () => {
 
   const navigationItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+    { text: 'Unified Processing', icon: <AutoFixHighIcon />, path: '/processing', featured: true },
+    { text: 'Model Management', icon: <MemoryIcon />, path: '/models', featured: true },
     { text: 'Image Enhancement', icon: <PhotoCameraIcon />, path: '/enhancement' },
     { text: 'Threat Detection', icon: <SecurityIcon />, path: '/detection' },
     { text: 'Analytics', icon: <AnalyticsIcon />, path: '/analytics' },
@@ -79,7 +83,24 @@ const Navbar = () => {
               {item.icon}
             </ListItemIcon>
             <ListItemText 
-              primary={item.text}
+              primary={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {item.text}
+                  {item.featured && (
+                    <Badge 
+                      badgeContent="NEW" 
+                      sx={{ 
+                        '& .MuiBadge-badge': { 
+                          fontSize: '0.6rem', 
+                          height: 16, 
+                          minWidth: 30,
+                          backgroundColor: '#4caf50'
+                        } 
+                      }} 
+                    />
+                  )}
+                </Box>
+              }
               sx={{ 
                 '& .MuiListItemText-primary': {
                   fontWeight: location.pathname === item.path ? 600 : 400,
