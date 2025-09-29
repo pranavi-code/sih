@@ -1,114 +1,122 @@
-# AI-Based Underwater Image Enhancement System
+# AI-Based Underwater Image Enhancement & Threat Detection System
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11+-green.svg)](https://python.org)
-[![React](https://img.shields.io/badge/react-18.0+-blue.svg)](https://reactjs.org)
-[![FastAPI](https://img.shields.io/badge/fastapi-0.104+-teal.svg)](https://fastapi.tiangolo.com)
+## 🌊 What is this project?
 
-## 🌊 Project Overview
+This project is an **AI-powered software platform** designed to enhance underwater images and automatically detect maritime threats. It is built for defense and security applications, especially for India's maritime surveillance needs. The system uses deep learning models (GANs for image enhancement, YOLO for threat detection) to process underwater images from cameras, AUVs, or ROVs, improving visibility and identifying threats like submarines, mines, drones, and divers.
 
-This is a comprehensive AI-powered system for underwater image enhancement and maritime threat detection, developed for the Smart India Hackathon (SIH). The system combines advanced computer vision techniques with modern web technologies to provide real-time underwater image analysis for enhanced maritime security.
+---
 
-### 🎯 Key Features
+## 🚀 What does it do?
 
-- **🌊 Unified Processing Pipeline**: Combined image enhancement and threat detection in one seamless workflow
-- **🔧 Model Management System**: Download and deploy AI models for different edge device configurations
-- **🤖 GAN-Based Image Enhancement**: Advanced underwater image restoration using Generative Adversarial Networks
-- **🛡️ Real-Time Threat Detection**: YOLO v11-based detection of submarines, mines, divers, and suspicious objects
-- **📊 Interactive Dashboard**: Modern React-based interface with real-time monitoring and analytics
-- **⚡ Edge Device Optimization**: Specialized models for AUV/ROV deployment with hardware acceleration
-- **📱 Responsive Design**: Works seamlessly across desktop, tablet, and mobile devices
-- **🐳 Container Ready**: Docker-based deployment for easy scaling and management
+- **Enhances underwater images** to restore clarity, color, and contrast using AI.
+- **Detects and classifies threats** (submarines, mines, divers, drones) in real time.
+- **Provides a web dashboard** for uploading images, viewing results, and monitoring metrics.
+- **Supports edge deployment** for live processing on AUV/ROV devices.
+- **Shows quality metrics** (PSNR, SSIM, UIQM) and detection confidence for trust and explainability.
 
-## 🏗️ Architecture
+---
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │    Backend      │    │   Database      │
-│   (React)       │◄──►│   (FastAPI)     │◄──►│   (MongoDB)     │
-│   Port: 80      │    │   Port: 8000    │    │   Port: 27017   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │     Redis       │
-                    │   (Caching)     │
-                    │   Port: 6379    │
-                    └─────────────────┘
-```
+## ⚙️ How does it work?
 
-## Project Structure
-```
-prototype/
-├── backend/                 # FastAPI backend
-├── frontend/               # React.js dashboard
-├── models/                 # AI models and training scripts
-├── edge/                   # Edge device deployment
-├── data/                   # Sample datasets
-├── docs/                   # Documentation
-└── deployment/             # Docker and deployment configs
-```
+1. **Upload an underwater image or video** via the web dashboard.
+2. The backend **enhances the image** using a GAN-based model.
+3. The enhanced image is **analyzed for threats** using a YOLO-based detector.
+4. **Results are displayed**: enhanced image, detected threats, and quality metrics.
+5. **Download results** or view historical analysis.
+6. **Edge devices** can run optimized models for real-time, low-latency operation.
 
-## 🚀 Quick Start
+---
 
-### Option 1: Demo Script (Recommended)
+## 🛠️ How to clone and run
+
+### 1. Clone the repository
+
 ```bash
-# Windows
-START_DEMO.bat
-
-# Linux/Mac
-chmod +x setup.sh && ./setup.sh
+git clone https://github.com/your-org/underwater-ai-maritime-security.git
+cd underwater-ai-maritime-security
 ```
 
-### Option 2: Manual Setup
+### 2. Install dependencies
+
+#### Python backend
+
 ```bash
-# 1. Install Python dependencies
 pip install -r requirements.txt
-
-# 2. Install Node.js dependencies
-cd frontend && npm install
-
-# 3. Start backend server
-cd ../backend && python main.py
-
-# 4. Start frontend (new terminal)
-cd frontend && npm start
-
-# 5. Access the system
-# Frontend: http://localhost:3000
-# Backend API: http://localhost:8000
-# API Documentation: http://localhost:8000/docs
 ```
 
-### 🌟 New Features
-- **Unified Processing**: `/processing` - Combined enhancement + detection
-- **Model Management**: `/models` - Download AI models for edge devices
-- **Real-time Dashboard**: Live monitoring with threat alerts
-- **Edge Deployment**: Optimized models for AUV/ROV systems
+#### React frontend
 
-## Technology Stack
-- **AI/ML**: TensorFlow, PyTorch, OpenCV, YOLO v11
-- **Backend**: FastAPI, Uvicorn, Motor (MongoDB driver)
-- **Frontend**: React.js, Material-UI, Axios
-- **Database**: MongoDB
-- **Edge**: TensorRT, CUDA, Quantization
-- **Deployment**: Docker, Docker Compose
+```bash
+cd frontend
+npm install
+```
 
-## Quality Metrics
+### 3. Run the backend
+
+```bash
+cd ../backend
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### 4. Run the frontend (in a new terminal)
+
+```bash
+cd frontend
+npm start
+```
+
+### 5. Access the system
+
+- **Frontend dashboard:** [http://localhost:3000](http://localhost:3000)
+- **Backend API:** [http://localhost:8000](http://localhost:8000)
+- **API docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
+
+---
+
+## 🧩 Features
+
+- Unified image enhancement + threat detection pipeline
+- Real-time dashboard with upload, visualization, and metrics
+- Model management for edge deployment
+- Quality metrics for image and detection trust
+- Docker-ready for easy deployment
+
+---
+
+## 🏆 Technology Stack
+
+- **AI/ML:** TensorFlow, PyTorch, OpenCV, YOLO v11
+- **Backend:** FastAPI, Uvicorn
+- **Frontend:** React.js, Material-UI
+- **Database:** MongoDB
+- **Edge:** TensorRT, CUDA
+
+---
+
+## 📈 Quality Metrics
+
 - **PSNR** (Peak Signal-to-Noise Ratio)
 - **SSIM** (Structural Similarity Index)
 - **UIQM** (Underwater Image Quality Measure)
 
-## Maritime Threats Detected
+---
+
+## 🛡️ Threats Detected
+
 - Submarines
 - Naval mines
 - Underwater drones
 - Divers/swimmers
 - Suspicious objects
 
-## Edge Device Support
+---
+
+## ⚡ Edge Device Support
+
 - Optimized models for AUV/ROV deployment
 - Low-latency processing (<100ms)
 - Robust performance across varying conditions
-- Hardware acceleration support
+
+---
+
+**For more details, see the API docs or explore the dashboard after setup!**
