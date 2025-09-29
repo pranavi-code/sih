@@ -32,8 +32,8 @@ This project is an **AI-powered software platform** designed to enhance underwat
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-org/underwater-ai-maritime-security.git
-cd underwater-ai-maritime-security
+git clone https://github.com/pranavi-code/sih
+cd sih
 ```
 
 ### 2. Install dependencies
