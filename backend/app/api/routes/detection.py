@@ -2,7 +2,7 @@
 API routes for threat detection functionality
 """
 
-from fastapi import APIRouter, File, UploadFile, HTTPException, BackgroundTasks
+from fastapi import APIRouter, File, UploadFile, HTTPException, BackgroundTasks, Form
 from fastapi.responses import FileResponse, JSONResponse
 import os
 import logging
@@ -79,7 +79,7 @@ async def get_detected_image(filename: str):
     
     - **filename**: Name of the annotated image file
     """
-    file_path = os.path.join("enhanced", filename)
+    file_path = os.path.join("detected", filename)  # <--- FIXED!
     
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Annotated image not found")
@@ -90,7 +90,7 @@ async def get_detected_image(filename: str):
         filename=filename
     )
 
-@router.post("/analyze_threats")
+@router.post("/a nalyze_threat_patterns")
 async def analyze_threat_patterns(
     background_tasks: BackgroundTasks,
     files: list[UploadFile] = File(...)
@@ -299,3 +299,28 @@ async def log_pattern_analysis(results: dict):
         # In production, store in database
     except Exception as e:
         logger.error(f"Error logging pattern analysis: {e}")
+
+@router.post("/detection")
+async def detect_threats(
+    file: UploadFile = File(...),
+    param1: float = Form(0.5),
+    param2: bool = Form(True)
+):
+    # Save the detected image to 'detected' folder
+    filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}_detected.png"
+    detected_path = os.path.join("detected", filename)
+    # Dummy save (replace with actual detection logic)
+    with open(detected_path, "wb") as f:
+        f.write(await file.read())
+    return JSONResponse(content={
+        "annotated_image": f"detected/{filename}",
+        "total_detections": 1,
+        "detections": [
+            {
+                "threat_type": "submarine",
+                "confidence": 0.97,
+                "severity": "critical",
+                "bbox": {"x1": 100, "y1": 200}
+            }
+        ]
+    })

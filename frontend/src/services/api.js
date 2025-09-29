@@ -25,206 +25,85 @@ apiClient.interceptors.request.use(
 
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
-  (response) => {
-    return response.data;
-  },
+  (response) => response.data,
   (error) => {
     console.error('API Response Error:', error);
     if (error.response) {
-      // Server responded with error status
       const message = error.response.data?.detail || error.response.data?.message || 'Server error';
       throw new Error(`${error.response.status}: ${message}`);
     } else if (error.request) {
-      // Network error
       throw new Error('Network error - please check your connection');
     } else {
-      // Other error
       throw new Error(error.message || 'An unexpected error occurred');
     }
   }
 );
 
-// Dashboard API endpoints
-export const dashboardAPI = {
-  getDashboardOverview: () => apiClient.get('/dashboard'),
-  getSystemStatus: () => apiClient.get('/system_status'),
-  getRecentOperations: (limit = 50) => apiClient.get(`/recent_operations?limit=${limit}`),
-  getAlerts: (status = null) => apiClient.get(`/alerts${status ? `?status=${status}` : ''}`),
-  acknowledgeAlert: (alertId) => apiClient.post(`/alerts/${alertId}/acknowledge`),
-  getConfiguration: () => apiClient.get('/configuration'),
-  exportData: (dataType, dateRange = '7_days') => 
-    apiClient.post('/export_data', { data_type: dataType, date_range: dateRange }),
-};
-
 // Enhancement API endpoints
 export const enhancementAPI = {
-  enhanceImage: (file, calculateMetrics = true) => {
+  processEnhancement: async (file, param1 = 0.5, param2 = true) => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('calculate_metrics', calculateMetrics);
-    
-    return apiClient.post('/enhance', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+    formData.append('param1', param1);
+    formData.append('param2', param2);
+
+    // Only return response, not response.data
+    return await apiClient.post('/enhance', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
-  
-  batchEnhance: (files) => {
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append('files', file);
-    });
-    
-    return apiClient.post('/batch_enhance', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+
+  getEnhancedImage: async (filename) => {
+    // For blobs, don't use response interceptor
+    const response = await apiClient.get(`/enhanced/${filename}`, { responseType: 'blob' });
+    return response;
   },
-  
-  getEnhancedImage: (filename) => apiClient.get(`/enhanced/${filename}`, {
-    responseType: 'blob',
-  }),
-  
-  getEnhancementHistory: () => apiClient.get('/enhancement_history'),
 };
 
 // Detection API endpoints
 export const detectionAPI = {
-  detectThreats: (file, confidenceThreshold = 0.5) => {
+  processDetection: async (file, param1 = 0.5, param2 = true) => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('confidence_threshold', confidenceThreshold);
-    
-    return apiClient.post('/detect', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+    formData.append('param1', param1);
+    formData.append('param2', param2);
+
+    return await apiClient.post('/detection', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
-  
-  analyzeThreats: (files) => {
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append('files', file);
-    });
-    
-    return apiClient.post('/analyze_threats', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+
+  getDetectedImage: async (filename) => {
+    const response = await apiClient.get(`/detected/${filename}`, { responseType: 'blob' });
+    return response;
   },
-  
-  getDetectedImage: (filename) => apiClient.get(`/detected/${filename}`, {
-    responseType: 'blob',
-  }),
-  
-  getThreatStatistics: () => apiClient.get('/threat_statistics'),
-  getDetectionHistory: () => apiClient.get('/detection_history'),
-  getThreatTypes: () => apiClient.get('/threat_types'),
 };
 
-// Metrics API endpoints
-export const metricsAPI = {
-  getQualityMetrics: () => apiClient.get('/quality_metrics'),
-  getPerformanceDashboard: () => apiClient.get('/performance_dashboard'),
-  getMetricsHistory: (days = 7) => apiClient.get(`/metrics_history?days=${days}`),
-  getComparisonReport: () => apiClient.get('/comparison_report'),
-  getBenchmarkResults: () => apiClient.get('/benchmark_results'),
+// Dashboard API endpoints
+export const dashboardAPI = {
+  getDashboardStats: async () => await apiClient.get('/dashboard/stats'),
+  getRecentActivities: async () => await apiClient.get('/dashboard/activities'),
 };
 
-// Unified processing API endpoints
-export const unifiedAPI = {
-  processUnified: (file, confidenceThreshold = 0.5, calculateMetrics = true) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('confidence_threshold', confidenceThreshold);
-    formData.append('calculate_metrics', calculateMetrics);
-    
-    return apiClient.post('/process_unified', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-  },
-  
-  processBatchUnified: (files, confidenceThreshold = 0.5) => {
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append('files', file);
-    });
-    formData.append('confidence_threshold', confidenceThreshold);
-    
-    return apiClient.post('/process_batch_unified', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-  },
-  
-  getProcessingStats: () => apiClient.get('/processing_stats'),
-  getModelStatus: () => apiClient.get('/model_status'),
-};
-
-// Model management API endpoints
+// Model Management API endpoints
 export const modelAPI = {
-  getAvailableModels: () => apiClient.get('/models/available'),
-  getModelDetails: (modelId) => apiClient.get(`/models/model/${modelId}`),
-  downloadModel: (modelId, deviceType = 'gpu_server') => 
-    apiClient.post(`/models/download/${modelId}?device_type=${deviceType}`),
-  getDownloadStatus: (downloadId) => apiClient.get(`/models/download/status/${downloadId}`),
-  getInstalledModels: () => apiClient.get('/models/installed'),
-  uninstallModel: (modelId, deviceType = 'all') => 
-    apiClient.delete(`/models/installed/${modelId}?device_type=${deviceType}`),
-  getDeviceCompatibility: (deviceType) => apiClient.get(`/models/device_compatibility/${deviceType}`),
-  optimizeModel: (modelId, deviceType) => 
-    apiClient.post(`/models/optimize/${modelId}?device_type=${deviceType}`),
-};
-
-// Main processing endpoint (legacy)
-export const processAPI = {
-  processImage: (file, enhanceOnly = false) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('enhance_only', enhanceOnly);
-    
-    return apiClient.post('/process', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-  },
+  getModels: async () => await apiClient.get('/models'),
+  deployModel: async (modelId) => await apiClient.post(`/models/${modelId}/deploy`),
+  updateModel: async (modelId, data) => await apiClient.put(`/models/${modelId}`, data),
 };
 
 // Utility functions
 export const utils = {
-  // Convert blob to URL for image display
-  createImageUrl: (blob) => {
-    return URL.createObjectURL(blob);
-  },
-  
-  // Clean up blob URLs
-  revokeImageUrl: (url) => {
-    URL.revokeObjectURL(url);
-  },
-  
-  // Format file size
+  createImageUrl: (blob) => URL.createObjectURL(blob),
+  revokeImageUrl: (url) => URL.revokeObjectURL(url),
   formatFileSize: (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   },
-  
-  // Format date
-  formatDate: (dateString) => {
-    return new Date(dateString).toLocaleString();
-  },
-  
-  // Get severity color
+  formatDate: (dateString) => new Date(dateString).toLocaleString(),
   getSeverityColor: (severity) => {
     switch (severity) {
       case 'critical': return '#d32f2f';
@@ -234,8 +113,6 @@ export const utils = {
       default: return '#9e9e9e';
     }
   },
-  
-  // Get metric color based on value
   getMetricColor: (metric, value) => {
     switch (metric) {
       case 'psnr':
@@ -257,12 +134,9 @@ export const utils = {
 };
 
 export default {
-  dashboardAPI,
   enhancementAPI,
   detectionAPI,
-  metricsAPI,
-  unifiedAPI,
+  dashboardAPI,
   modelAPI,
-  processAPI,
   utils,
 };
