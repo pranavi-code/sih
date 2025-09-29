@@ -1,0 +1,26 @@
+[
+  {
+    "id": "threat_001",
+    "timestamp": "2025-09-28T10:45:00Z",
+    "image_id": "proc_001",
+    "threats_detected": [
+      {
+        "threat_type": "submarine",
+        "confidence": 0.89,
+        "severity": "critical",
+        "bbox": {
+          "x1": 120,
+          "y1": 80,
+          "x2": 280,
+          "y2": 180
+        },
+        "area": 25600
+      }
+    ],
+    "total_threats": 1,
+    "critical_threats": 1,
+    "processing_time": 1.1,
+    "model_version": "YOLO-v11-Maritime",
+    "status": "completed"
+  }
+]

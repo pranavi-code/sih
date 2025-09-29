@@ -174,9 +174,9 @@ class DatabaseManager:
             
             return document["id"]
         
-    except Exception as e:
-            logger.error(f"Error inserting document: {e}")
-            raise
+        except Exception as e:
+                logger.error(f"Error inserting document: {e}")
+                raise
     
     async def find_documents(self, collection: str, query: Dict = None, limit: int = None) -> List[Dict]:
         """Find documents in collection"""
@@ -232,9 +232,9 @@ class DatabaseManager:
                 "last_updated": datetime.now().isoformat()
             }
         
-    except Exception as e:
-            logger.error(f"Error getting processing stats: {e}")
-            return {}
+        except Exception as e:
+                logger.error(f"Error getting processing stats: {e}")
+                return {}
 
 # Global database instance
 db_manager = DatabaseManager()

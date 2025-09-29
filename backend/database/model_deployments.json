@@ -1,0 +1,18 @@
+[
+  {
+    "id": "deploy_001",
+    "model_id": "gan_v2_1_quantized",
+    "device_type": "auv_rov",
+    "deployment_date": "2025-09-27T14:30:00Z",
+    "status": "active",
+    "performance": {
+      "inference_time": "1.8s",
+      "accuracy": "94.8%",
+      "memory_usage": "89MB"
+    },
+    "usage_stats": {
+      "images_processed": 1247,
+      "last_used": "2025-09-28T09:45:00Z"
+    }
+  }
+]

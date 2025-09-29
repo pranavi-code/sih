@@ -20,8 +20,6 @@ import {
   Stepper,
   Step,
   StepLabel,
-  StepContent,
-  Divider,
 } from '@mui/material';
 import {
   CloudUpload as CloudUploadIcon,
@@ -59,12 +57,12 @@ const UnifiedProcessing = () => {
       setSelectedFile(file);
       setResults(null);
       setError(null);
-      setActiveStep(1);
-      
+      setActiveStep(0);
+
       // Create preview URL for original image
       const url = URL.createObjectURL(file);
       setOriginalImageUrl(url);
-      
+
       // Clean up previous URLs
       if (enhancedImageUrl) URL.revokeObjectURL(enhancedImageUrl);
       if (detectedImageUrl) URL.revokeObjectURL(detectedImageUrl);
@@ -82,43 +80,53 @@ const UnifiedProcessing = () => {
     maxSize: 10 * 1024 * 1024, // 10MB
   });
 
-  const handleProcessImage = async () => {
+  // Step 1: Enhance Image
+  const handleEnhanceImage = async () => {
     if (!selectedFile) return;
-
     setProcessing(true);
     setError(null);
-    setActiveStep(1);
 
     try {
-      // Unified Processing: Enhancement + Detection in one call
       setActiveStep(1);
-      const unifiedResult = await unifiedAPI.processUnified(selectedFile, 0.5, true);
-      
-      // Get enhanced image
-      if (unifiedResult.enhanced_image) {
-        const filename = unifiedResult.enhanced_image.split('/').pop();
+      // Call enhancement API
+      const enhanceResult = await enhancementAPI.processEnhancement(selectedFile, 0.5, true);
+      if (enhanceResult && enhanceResult.enhanced_image) {
+        const filename = enhanceResult.enhanced_image.replace(/\\/g, '/').split('/').pop();
         const imageBlob = await enhancementAPI.getEnhancedImage(filename);
         const url = utils.createImageUrl(imageBlob);
         setEnhancedImageUrl(url);
+      } else {
+        setError('No enhanced image returned from backend');
       }
-
+      setProcessing(false);
       setActiveStep(2);
-      
-      // Get detected image with annotations
-      if (unifiedResult.annotated_image) {
-        const filename = unifiedResult.annotated_image.split('/').pop();
+    } catch (err) {
+      setError(err.message || 'Enhancement failed');
+      setProcessing(false);
+    }
+  };
+
+  // Step 2: Detect Threats
+  const handleDetectThreats = async () => {
+    if (!selectedFile || !enhancedImageUrl) return;
+    setProcessing(true);
+    setError(null);
+
+    try {
+      setActiveStep(2);
+      // FIX: Use processDetection, not detectThreats
+      const detectionResult = await detectionAPI.processDetection(selectedFile, 0.5, true);
+      if (detectionResult.annotated_image) {
+        const filename = detectionResult.annotated_image.replace(/\\/g, '/').split('/').pop();
         const imageBlob = await detectionAPI.getDetectedImage(filename);
         const url = utils.createImageUrl(imageBlob);
         setDetectedImageUrl(url);
       }
-
-      setResults(unifiedResult);
+      setResults(detectionResult);
+      setProcessing(false);
       setActiveStep(3);
-
     } catch (err) {
-      setError(err.message || 'Processing failed');
-      console.error('Processing error:', err);
-    } finally {
+      setError(err.message || 'Detection failed');
       setProcessing(false);
     }
   };
@@ -209,19 +217,49 @@ const UnifiedProcessing = () => {
                   <Alert severity="info" sx={{ mb: 2 }}>
                     <strong>Selected:</strong> {selectedFile.name} ({utils.formatFileSize(selectedFile.size)})
                   </Alert>
-                  
+                  {/* Show original image after upload */}
+                  {originalImageUrl && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Original Image Preview:</Typography>
+                      <Box
+                        component="img"
+                        src={originalImageUrl}
+                        alt="Original"
+                        sx={{
+                          width: '100%',
+                          height: 200,
+                          objectFit: 'cover',
+                          borderRadius: 1,
+                          mb: 1,
+                        }}
+                      />
+                    </Box>
+                  )}
+                  {/* Step 1: Enhance Image */}
                   <Button
                     variant="contained"
-                    onClick={handleProcessImage}
-                    disabled={processing}
-                    startIcon={processing ? <LinearProgress /> : <AutoFixHighIcon />}
+                    onClick={handleEnhanceImage}
+                    disabled={processing || activeStep !== 0}
+                    startIcon={processing && activeStep === 1 ? <LinearProgress /> : <AutoFixHighIcon />}
                     fullWidth
                     size="large"
                     sx={{ mb: 2, py: 1.5 }}
                   >
-                    {processing ? 'Processing...' : 'Enhance + Detect Threats'}
+                    {processing && activeStep === 1 ? 'Enhancing...' : 'Proceed to Enhancement'}
                   </Button>
-
+                  {/* Step 2: Detect Threats */}
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={handleDetectThreats}
+                    disabled={processing || !enhancedImageUrl || activeStep !== 2}
+                    startIcon={processing && activeStep === 2 ? <LinearProgress /> : <SecurityIcon />}
+                    fullWidth
+                    size="large"
+                    sx={{ mb: 2, py: 1.5 }}
+                  >
+                    {processing && activeStep === 2 ? 'Detecting...' : 'Proceed to Threat Detection'}
+                  </Button>
                   {processing && (
                     <Box sx={{ mt: 2 }}>
                       <LinearProgress />

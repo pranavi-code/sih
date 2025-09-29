@@ -46,9 +46,12 @@ app.add_middleware(
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("enhanced", exist_ok=True)
 os.makedirs("static", exist_ok=True)
+os.makedirs("detected", exist_ok=True)  # <-- Add this line
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/enhanced", StaticFiles(directory="enhanced"), name="enhanced")
+app.mount("/detected", StaticFiles(directory="detected"), name="detected")  # <-- Add this line
 
 # Include API routes
 app.include_router(unified.router, prefix="/api/v1", tags=["Unified Processing"])
