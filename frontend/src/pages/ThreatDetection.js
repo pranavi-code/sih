@@ -78,15 +78,17 @@ const ThreatDetection = () => {
     setError(null);
 
     try {
-      const result = await detectionAPI.detectThreats(selectedFile, confidenceThreshold);
+      const result = await detectionAPI.processDetection(selectedFile, confidenceThreshold, true);
       setResults(result);
 
       // Get detected image with annotations
       if (result.annotated_image) {
-        const filename = result.annotated_image.split('/').pop();
-        const imageBlob = await detectionAPI.getDetectedImage(filename);
-        const url = utils.createImageUrl(imageBlob);
-        setDetectedImageUrl(url);
+        const filename = result.annotated_image.replace(/\\/g, '/').split('/').pop();
+        const blob = await detectionAPI.getDetectedImage(filename);
+        if (blob) {
+          const url = utils.createImageUrl(blob);
+          setDetectedImageUrl(url);
+        }
       }
     } catch (err) {
       setError(err.message || 'Detection failed');
@@ -196,55 +198,97 @@ const ThreatDetection = () => {
           {results && (
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 1 }}>
                   Detection Results
                 </Typography>
 
-                <Box sx={{ mb: 2 }}>
-                  <Chip 
-                    label={`${results.total_detections || 0} Threats Found`} 
-                    color={results.total_detections > 0 ? 'error' : 'success'}
-                    sx={{ mr: 1 }} 
-                  />
-                  <Chip 
-                    label={`Confidence: ≥${(confidenceThreshold * 100).toFixed(0)}%`} 
-                    variant="outlined" 
-                  />
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+                  <Paper variant="outlined" sx={{ p: 2, minWidth: 200, flex: '1 1 220px' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <SecurityIcon sx={{ color: results.total_detections > 0 ? '#d32f2f' : '#4caf50' }} />
+                      <Typography sx={{ fontWeight: 'bold' }}>Overview</Typography>
+                    </Box>
+                    <Chip 
+                      label={`${results.total_detections || 0} Threats`} 
+                      color={results.total_detections > 0 ? 'error' : 'success'}
+                      size="small"
+                      sx={{ mr: 1, mb: 1 }} 
+                    />
+                    <Chip 
+                      label={`Conf ≥ ${(confidenceThreshold * 100).toFixed(0)}%`} 
+                      size="small" 
+                      variant="outlined"
+                    />
+                  </Paper>
+
+                  {results.threat_summary && (
+                    <Paper variant="outlined" sx={{ p: 2, minWidth: 240, flex: '1 1 260px' }}>
+                      <Typography sx={{ fontWeight: 'bold', mb: 1 }}>Severity Breakdown</Typography>
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        <Chip label={`Critical ${results.threat_summary.critical_threats || 0}`} size="small" sx={{ backgroundColor: '#ffebee', color: '#d32f2f' }} />
+                        <Chip label={`High ${results.threat_summary.high_threats || 0}`} size="small" sx={{ backgroundColor: '#fff3e0', color: '#f57c00' }} />
+                        <Chip label={`Medium ${results.threat_summary.medium_threats || 0}`} size="small" sx={{ backgroundColor: '#fffde7', color: '#fbc02d' }} />
+                      </Box>
+                    </Paper>
+                  )}
+
+                  {results.threat_summary?.threat_types && (
+                    <Paper variant="outlined" sx={{ p: 2, minWidth: 240, flex: '1 1 260px' }}>
+                      <Typography sx={{ fontWeight: 'bold', mb: 1 }}>Threat Types</Typography>
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        {Object.entries(results.threat_summary.threat_types).map(([type, count]) => (
+                          <Chip key={type} label={`${type.replace('_',' ')} ${count}`} size="small" />
+                        ))}
+                      </Box>
+                    </Paper>
+                  )}
                 </Box>
 
-                {results.threat_summary && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
-                      Threat Summary
-                    </Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={4}>
-                        <Paper variant="outlined" sx={{ p: 1, textAlign: 'center', backgroundColor: '#ffebee' }}>
-                          <Typography variant="h4" sx={{ color: '#d32f2f', fontWeight: 'bold' }}>
-                            {results.threat_summary.critical_threats || 0}
-                          </Typography>
-                          <Typography variant="caption">Critical</Typography>
-                        </Paper>
-                      </Grid>
-                      <Grid item xs={4}>
-                        <Paper variant="outlined" sx={{ p: 1, textAlign: 'center', backgroundColor: '#fff3e0' }}>
-                          <Typography variant="h4" sx={{ color: '#f57c00', fontWeight: 'bold' }}>
-                            {results.threat_summary.high_threats || 0}
-                          </Typography>
-                          <Typography variant="caption">High</Typography>
-                        </Paper>
-                      </Grid>
-                      <Grid item xs={4}>
-                        <Paper variant="outlined" sx={{ p: 1, textAlign: 'center', backgroundColor: '#fffde7' }}>
-                          <Typography variant="h4" sx={{ color: '#fbc02d', fontWeight: 'bold' }}>
-                            {results.threat_summary.medium_threats || 0}
-                          </Typography>
-                          <Typography variant="caption">Medium</Typography>
-                        </Paper>
-                      </Grid>
-                    </Grid>
-                  </Box>
-                )}
+                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 1 }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<DownloadIcon />}
+                    onClick={() => {
+                      const payload = {
+                        metadata: { created_at: new Date().toISOString(), filename: selectedFile?.name || 'image' },
+                        total_detections: results.total_detections || 0,
+                        threat_summary: results.threat_summary || {},
+                        detections: results.detections || [],
+                      };
+                      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${(selectedFile?.name || 'results').replace(/\.[^.]+$/, '')}_detection.json`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    Download Report
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<DownloadIcon />}
+                    disabled={!results?.annotated_image}
+                    onClick={async () => {
+                      const filename = (results?.annotated_image || '').replace(/\\/g, '/').split('/').pop();
+                      if (!filename) return;
+                      const blob = await detectionAPI.getDetectedImage(filename);
+                      const url = utils.createImageUrl(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = filename;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    Download Annotated Image
+                  </Button>
+                </Box>
               </CardContent>
             </Card>
           )}

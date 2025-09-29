@@ -71,14 +71,14 @@ const ImageEnhancement = () => {
     setError(null);
 
     try {
-      const result = await enhancementAPI.enhanceImage(selectedFile, true);
+      const result = await enhancementAPI.processEnhancement(selectedFile, 0.5, true);
       setResults(result);
 
       // Get enhanced image
-      if (result.enhanced_image) {
-        const filename = result.enhanced_image.split('/').pop();
-        const imageBlob = await enhancementAPI.getEnhancedImage(filename);
-        const url = utils.createImageUrl(imageBlob);
+      if (result?.enhanced_image) {
+        const filename = result.enhanced_image.replace(/\\/g, '/').split('/').pop();
+        const blob = await enhancementAPI.getEnhancedImage(filename);
+        const url = utils.createImageUrl(blob);
         setEnhancedImageUrl(url);
       }
     } catch (err) {
@@ -93,11 +93,11 @@ const ImageEnhancement = () => {
     if (!results?.enhanced_image) return;
 
     try {
-      const filename = results.enhanced_image.split('/').pop();
-      const imageBlob = await enhancementAPI.getEnhancedImage(filename);
+      const filename = results.enhanced_image.replace(/\\/g, '/').split('/').pop();
+      const blob = await enhancementAPI.getEnhancedImage(filename);
       
       // Create download link
-      const url = utils.createImageUrl(imageBlob);
+      const url = utils.createImageUrl(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `enhanced_${selectedFile?.name || 'image.jpg'}`;

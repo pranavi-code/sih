@@ -287,54 +287,120 @@ const UnifiedProcessing = () => {
           {results && (
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 1 }}>
                   Processing Summary
                 </Typography>
 
-                <Grid container spacing={2} sx={{ mb: 2 }}>
-                  <Grid item xs={6}>
-                    <Paper variant="outlined" sx={{ p: 2, textAlign: 'center', backgroundColor: '#e3f2fd' }}>
-                      <AutoFixHighIcon sx={{ fontSize: 30, color: '#1976d2', mb: 1 }} />
-                      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Enhanced</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        PSNR: {results.quality_metrics?.psnr?.toFixed(1) || 'N/A'}
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Paper variant="outlined" sx={{ p: 2, textAlign: 'center', backgroundColor: results.total_detections > 0 ? '#ffebee' : '#e8f5e8' }}>
-                      <SecurityIcon sx={{ fontSize: 30, color: results.total_detections > 0 ? '#d32f2f' : '#4caf50', mb: 1 }} />
-                      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                        {results.total_detections || 0} Threats
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {results.total_detections > 0 ? 'Threats Found' : 'All Clear'}
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                </Grid>
-
-                {results.quality_metrics && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
-                      Quality Metrics
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                      <Chip label={`PSNR: ${results.quality_metrics.psnr?.toFixed(1) || 'N/A'}`} size="small" />
-                      <Chip label={`SSIM: ${results.quality_metrics.ssim?.toFixed(2) || 'N/A'}`} size="small" />
-                      <Chip label={`UIQM: ${results.quality_metrics.uiqm?.toFixed(1) || 'N/A'}`} size="small" />
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+                  <Paper variant="outlined" sx={{ p: 2, minWidth: 200, flex: '1 1 220px' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <AutoFixHighIcon sx={{ color: '#1976d2' }} />
+                      <Typography sx={{ fontWeight: 'bold' }}>Enhancement</Typography>
                     </Box>
-                  </Box>
-                )}
+                    {results.quality_metrics ? (
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        <Chip label={`PSNR ${results.quality_metrics.psnr?.toFixed(1) || 'N/A'}`} size="small" />
+                        <Chip label={`SSIM ${results.quality_metrics.ssim?.toFixed(2) || 'N/A'}`} size="small" />
+                        <Chip label={`UIQM ${results.quality_metrics.uiqm?.toFixed(1) || 'N/A'}`} size="small" />
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">No metrics</Typography>
+                    )}
+                  </Paper>
 
-                <Button
-                  variant="outlined"
-                  startIcon={<DownloadIcon />}
-                  fullWidth
-                  disabled={!results}
-                >
-                  Download All Results
-                </Button>
+                  <Paper variant="outlined" sx={{ p: 2, minWidth: 200, flex: '1 1 220px' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <SecurityIcon sx={{ color: results.total_detections > 0 ? '#d32f2f' : '#4caf50' }} />
+                      <Typography sx={{ fontWeight: 'bold' }}>Threats</Typography>
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                      {results.total_detections || 0}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {results.total_detections > 0 ? 'Threats Found' : 'All Clear'}
+                    </Typography>
+                  </Paper>
+
+                  <Paper variant="outlined" sx={{ p: 2, minWidth: 200, flex: '1 1 220px' }}>
+                    <Typography sx={{ fontWeight: 'bold', mb: 1 }}>Details</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {results.timestamp ? `Processed: ${new Date(results.timestamp).toLocaleString()}` : '—'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Mode: Unified Pipeline
+                    </Typography>
+                  </Paper>
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<DownloadIcon />}
+                    disabled={!results}
+                    onClick={() => {
+                      const payload = {
+                        metadata: {
+                          created_at: new Date().toISOString(),
+                          filename: selectedFile?.name || 'image',
+                        },
+                        quality_metrics: results.quality_metrics || null,
+                        total_detections: results.total_detections || 0,
+                        detections: results.detections || [],
+                      };
+                      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${(selectedFile?.name || 'results').replace(/\.[^.]+$/, '')}_results.json`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    Download Report
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<DownloadIcon />}
+                    disabled={!results?.enhanced_image}
+                    onClick={async () => {
+                      const filename = (results?.enhanced_image || '').replace(/\\\\/g, '/').split('/').pop();
+                      if (!filename) return;
+                      const blob = await enhancementAPI.getEnhancedImage(filename);
+                      const url = utils.createImageUrl(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = filename;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    Download Enhanced Image
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<DownloadIcon />}
+                    disabled={!results?.annotated_image}
+                    onClick={async () => {
+                      const filename = (results?.annotated_image || '').replace(/\\\\/g, '/').split('/').pop();
+                      if (!filename) return;
+                      const blob = await detectionAPI.getDetectedImage(filename);
+                      const url = utils.createImageUrl(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = filename;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    Download Detected Image
+                  </Button>
+                </Box>
               </CardContent>
             </Card>
           )}
