@@ -29,14 +29,14 @@ This project is an **AI-powered software platform** designed to enhance underwat
 
 ## 🛠️ How to clone and run
 
-### 1. Clone the repository
+###  Clone the repository
 
 ```bash
 git clone https://github.com/pranavi-code/sih
 cd sih
 ```
 
-### 2. Install dependencies
+###  Install dependencies
 
 #### Python backend
 
@@ -44,28 +44,25 @@ cd sih
 pip install -r requirements.txt
 ```
 
-#### React frontend
-
+ Install the required npm packages in your main project folder:
 ```bash
-cd frontend
-npm install
+npm install concurrently wait-on --save-dev
 ```
 
-### 3. Run the backend
+### Start both servers
+
+Run this command in your main folder (`sih`):
 
 ```bash
-cd ../backend
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### 4. Run the frontend (in a new terminal)
-
-```bash
-cd frontend
 npm start
 ```
 
-### 5. Access the system
+This will:
+- Start the FastAPI backend on port 8000
+- Wait for the backend to be ready
+- Start the React frontend on port 3000
+
+### Access the system
 
 - **Frontend dashboard:** [http://localhost:3000](http://localhost:3000)
 - **Backend API:** [http://localhost:8000](http://localhost:8000)
