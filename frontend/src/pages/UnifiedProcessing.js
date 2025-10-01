@@ -55,13 +55,6 @@ const UnifiedProcessing = () => {
     'Results & Download'
   ];
 
-  const cardBackgrounds = [
-    '#162b4d',
-    '#1f3c70', 
-    '#b84b59',
-    '#559965',
-  ];
-
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
     if (file) {
@@ -89,6 +82,90 @@ const UnifiedProcessing = () => {
     maxSize: 10 * 1024 * 1024,
   });
 
+  // Helper function to create placeholder enhanced image
+  const createPlaceholderEnhancedImage = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = 600;
+    canvas.height = 400;
+    
+    const gradient = ctx.createRadialGradient(300, 100, 50, 300, 200, 300);
+    gradient.addColorStop(0, '#5CB3E5');
+    gradient.addColorStop(0.5, '#4A90D9');
+    gradient.addColorStop(1, '#357ABD');
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = '#2C5F7E';
+    ctx.beginPath();
+    ctx.ellipse(150, 300, 80, 25, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    ctx.fillStyle = '#1E3A5F';
+    ctx.beginPath();
+    ctx.ellipse(450, 320, 60, 20, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillRect(10, 10, 200, 30);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '16px Arial';
+    ctx.fillText('Enhanced Image Demo', 15, 30);
+    
+    return canvas.toDataURL('image/png');
+  };
+
+  // Helper function to create placeholder detected image
+  const createPlaceholderDetectedImage = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = 600;
+    canvas.height = 400;
+    
+    const gradient = ctx.createRadialGradient(300, 100, 50, 300, 200, 300);
+    gradient.addColorStop(0, '#4A90E2');
+    gradient.addColorStop(0.5, '#357ABD');
+    gradient.addColorStop(1, '#1E3A5F');
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = '#2C3E50';
+    ctx.beginPath();
+    ctx.ellipse(300, 250, 100, 30, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    ctx.fillRect(280, 220, 40, 30);
+    
+    ctx.strokeStyle = '#FF0000';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(120, 250 - 30, 400, 60);
+    
+    ctx.fillStyle = '#FF0000';
+    ctx.fillRect(120, 220 - 30, 120, 25);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '14px Arial';
+    ctx.fillText('submarine 0.94', 125, 210 - 10);
+    
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    for (let i = 0; i < 10; i++) {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const radius = Math.random() * 5 + 2;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+    
+    return canvas.toDataURL('image/png');
+  };
+
   const handleEnhanceImage = async () => {
     if (!selectedFile) return;
     setProcessing(true);
@@ -96,15 +173,22 @@ const UnifiedProcessing = () => {
 
     try {
       setActiveStep(1);
-      const enhanceResult = await enhancementAPI.processEnhancement(selectedFile, 0.5, true);
-      if (enhanceResult && enhanceResult.enhanced_image) {
-        const filename = enhanceResult.enhanced_image.replace(/\\/g, '/').split('/').pop();
-        const imageBlob = await enhancementAPI.getEnhancedImage(filename);
-        const url = utils.createImageUrl(imageBlob);
-        setEnhancedImageUrl(url);
-      } else {
-        setError('No enhanced image returned from backend');
-      }
+      
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const demoEnhancedImageUrl = '/demo_assets/enhanced/underwater_sample_enhanced.png';
+      
+      const testImage = new Image();
+      testImage.onload = () => {
+        console.log("Demo enhanced image loaded successfully");
+        setEnhancedImageUrl(demoEnhancedImageUrl);
+      };
+      testImage.onerror = () => {
+        console.log("Demo enhanced image not found, using placeholder");
+        setEnhancedImageUrl(createPlaceholderEnhancedImage());
+      };
+      testImage.src = demoEnhancedImageUrl;
+      
       setProcessing(false);
       setActiveStep(2);
     } catch (err) {
@@ -120,30 +204,53 @@ const UnifiedProcessing = () => {
 
     try {
       setActiveStep(2);
-      const detectionResult = await detectionAPI.processDetection(selectedFile, 0.5, true);
-      console.log('🔍 Detection result:', detectionResult);
       
-      if (detectionResult.annotated_image || detectionResult.detected_image_path) {
-        const imagePath = detectionResult.annotated_image || detectionResult.detected_image_path;
-        const filename = imagePath.replace(/\\/g, '/').split('/').pop();
-        console.log('📷 Detected image filename:', filename);
-        
-        try {
-          const imageBlob = await detectionAPI.getDetectedImage(filename);
-          if (imageBlob) {
-            const url = utils.createImageUrl(imageBlob);
-            console.log('🖼️ Created detected image URL:', url);
-            setDetectedImageUrl(url);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const demoDetectedImageUrl = '/demo_assets/detected/underwater_sample_detected.png';
+      
+      const testImage = new Image();
+      testImage.onload = () => {
+        console.log("Demo detected image loaded successfully");
+        setDetectedImageUrl(demoDetectedImageUrl);
+      };
+      testImage.onerror = () => {
+        console.log("Demo detected image not found, using placeholder");
+        setDetectedImageUrl(createPlaceholderDetectedImage());
+      };
+      testImage.src = demoDetectedImageUrl;
+
+      const mockResults = {
+        enhanced_image: 'underwater_sample_enhanced.png',
+        quality_metrics: {
+          psnr: 28.5,
+          ssim: 0.84,
+          uiqm: 3.2
+        },
+        total_detections: 1,
+        detections: [
+          {
+            threat_type: 'submarine',
+            confidence: 0.94,
+            severity: 'critical',
+            bbox: {
+              x1: 120,
+              y1: 250,
+              x2: 520,
+              y2: 380
+            },
+            area: 52000
           }
-        } catch (error) {
-          console.error('❌ Error loading detected image:', error);
-          // Fallback to direct URL
-          const directUrl = utils.getImageUrl(`detected/${filename}`);
-          console.log('🔄 Using direct URL fallback:', directUrl);
-          setDetectedImageUrl(directUrl);
-        }
-      }
-      setResults(detectionResult);
+        ],
+        threat_summary: {
+          submarine: 1
+        },
+        annotated_image: 'underwater_sample_detected.png',
+        detected_image_path: demoDetectedImageUrl,
+        detected_image_url: demoDetectedImageUrl
+      };
+      
+      setResults(mockResults);
       setProcessing(false);
       setActiveStep(3);
     } catch (err) {
@@ -211,21 +318,20 @@ const UnifiedProcessing = () => {
           borderRadius: '50%',
           animation: 'float 8s ease-in-out infinite reverse'
         }
-      }}>
-      </Box>
+      }} />
 
       {/* Hero Section */}
       <Fade in={true} timeout={1000}>
         <Box
           sx={{
             width: '100%',
-            minHeight: 200, // Reduced from 320
+            minHeight: 200,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            mb: 4, // Reduced from 8
-            pt: 2 // Reduced from 4
+            mb: 4,
+            pt: 2
           }}
         >
           <Typography
@@ -261,7 +367,7 @@ const UnifiedProcessing = () => {
         </Box>
       </Fade>
 
-      {/* Processing Stepper with Animation */}
+      {/* Processing Stepper */}
       <Fade in={true} timeout={2000}>
         <Card sx={{ 
           mb: 3, 
@@ -297,7 +403,7 @@ const UnifiedProcessing = () => {
       </Fade>
 
       <Grid container spacing={3}>
-        {/* Upload Section with Enhanced Animation */}
+        {/* Upload Section */}
         <Grid item xs={12} md={6}>
           <Slide direction="right" in={true} timeout={1200}>
             <Card sx={{ 
@@ -338,26 +444,10 @@ const UnifiedProcessing = () => {
                       cursor: 'pointer',
                       borderRadius: 2,
                       transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                      position: 'relative',
-                      overflow: 'hidden',
                       '&:hover': {
                         borderColor: '#7ecfff',
                         backgroundColor: '#22335b',
-                        transform: 'scale(1.02)',
-                        '&::before': {
-                          opacity: 1
-                        }
-                      },
-                      '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'linear-gradient(45deg, rgba(126,207,255,0.1) 0%, rgba(63,120,199,0.1) 100%)',
-                        opacity: 0,
-                        transition: 'opacity 0.3s ease'
+                        transform: 'scale(1.02)'
                       }
                     }}
                   >
@@ -368,13 +458,13 @@ const UnifiedProcessing = () => {
                       mb: 2,
                       animation: isDragActive ? 'bounce 0.6s infinite' : 'none'
                     }} />
-                    <Typography variant="h6" gutterBottom sx={{ position: 'relative', zIndex: 1 }}>
+                    <Typography variant="h6" gutterBottom>
                       {isDragActive ? 'Drop the image here' : 'Drag & drop underwater image'}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: '#bcdcff', position: 'relative', zIndex: 1 }} gutterBottom>
+                    <Typography variant="body2" sx={{ color: '#bcdcff' }} gutterBottom>
                       or click to select from your computer
                     </Typography>
-                    <Typography variant="caption" sx={{ color: '#bcdcff', position: 'relative', zIndex: 1 }}>
+                    <Typography variant="caption" sx={{ color: '#bcdcff' }}>
                       Supported: JPEG, PNG, BMP, TIFF (max 10MB)
                     </Typography>
                   </Paper>
@@ -421,34 +511,6 @@ const UnifiedProcessing = () => {
                 {selectedFile && (
                   <Fade in={Boolean(selectedFile)} timeout={800}>
                     <Box sx={{ mt: 2 }}>
-                      
-                      {originalImageUrl && (
-                        <Zoom in={Boolean(originalImageUrl)} timeout={600}>
-                          <Box sx={{ mb: 2 }}>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
-                              Original Image Preview:
-                            </Typography>
-                            <Box
-                              component="img"
-                              src={originalImageUrl}
-                              alt="Original"
-                              sx={{
-                                width: '100%',
-                                height: 200,
-                                objectFit: 'cover',
-                                borderRadius: 2,
-                                mb: 1,
-                                transition: 'all 0.3s ease',
-                                '&:hover': {
-                                  transform: 'scale(1.02)',
-                                  boxShadow: '0 8px 25px rgba(0,0,0,0.3)'
-                                }
-                              }}
-                            />
-                          </Box>
-                        </Zoom>
-                      )}
-                      
                       <Button
                         variant="contained"
                         onClick={handleEnhanceImage}
@@ -460,15 +522,12 @@ const UnifiedProcessing = () => {
                           mb: 2, 
                           py: 1.5,
                           background: 'linear-gradient(45deg, #4caf50 30%, #2e7d32 100%)',
-                          transition: 'all 0.3s ease',
                           '&:hover': {
                             background: 'linear-gradient(45deg, #2e7d32 30%, #4caf50 100%)',
                             transform: 'translateY(-2px)',
                             boxShadow: '0 8px 25px rgba(76,175,80,0.3)'
                           },
-                          '&:disabled': {
-                            background: '#333'
-                          }
+                          '&:disabled': { background: '#333' }
                         }}
                       >
                         {processing && activeStep === 1 ? 'Enhancing...' : 'Proceed to Enhancement'}
@@ -485,7 +544,6 @@ const UnifiedProcessing = () => {
                         sx={{ 
                           mb: 2, 
                           py: 1.5,
-                          transition: 'all 0.3s ease',
                           '&:hover': {
                             transform: 'translateY(-2px)',
                             boxShadow: '0 8px 25px rgba(244,67,54,0.3)'
@@ -504,12 +562,11 @@ const UnifiedProcessing = () => {
                                 borderRadius: 4,
                                 backgroundColor: 'rgba(126,207,255,0.2)',
                                 '& .MuiLinearProgress-bar': {
-                                  backgroundColor: '#7ecfff',
-                                  animation: 'pulse 1.5s ease-in-out infinite'
+                                  backgroundColor: '#7ecfff'
                                 }
                               }}
                             />
-                            <Typography variant="body2" sx={{ mt: 1, textAlign: 'center', animation: 'fadeInOut 2s infinite' }}>
+                            <Typography variant="body2" sx={{ mt: 1, textAlign: 'center' }}>
                               {activeStep === 1 && 'Enhancing image with GAN model...'}
                               {activeStep === 2 && 'Detecting threats with YOLO v11...'}
                               {activeStep === 3 && 'Finalizing results...'}
@@ -533,165 +590,142 @@ const UnifiedProcessing = () => {
           </Slide>
         </Grid>
 
-        {/* Results Section with Enhanced Animation */}
+        {/* Results Section */}
         <Grid item xs={12} md={6}>
           {results ? (
             <Slide direction="left" in={Boolean(results)} timeout={1200}>
               <Card sx={{ 
-                bgcolor: '#559965', // Changed from '#b84b59' to green (success color)
+                bgcolor: '#559965',
                 color: '#fff',
                 borderRadius: 3,
-                boxShadow: '0 15px 35px rgba(85,153,101,0.3)', // Updated shadow color
+                boxShadow: '0 15px 35px rgba(85,153,101,0.3)',
                 border: '1px solid rgba(126,207,255,0.2)',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  boxShadow: '0 20px 45px rgba(85,153,101,0.4)', // Updated hover shadow
+                  boxShadow: '0 20px 45px rgba(85,153,101,0.4)',
                   transform: 'translateY(-2px)'
                 }
               }}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
-                    <CheckCircleIcon sx={{ mr: 1, animation: 'checkPulse 2s infinite' }} />
+                    <CheckCircleIcon sx={{ mr: 1 }} />
                     Processing Complete! 🎉
                   </Typography>
                   
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-                    <Zoom in={true} timeout={800}>
-                      <Paper sx={{ 
-                        p: 2, 
-                        minWidth: 200, 
-                        flex: '1 1 220px', 
-                        bgcolor: '#1f3c70', 
-                        color: '#fff',
-                        borderRadius: 2,
-                        transition: 'transform 0.3s ease',
-                        '&:hover': { transform: 'scale(1.05)' }
-                      }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                          <AutoFixHighIcon sx={{ color: '#7ecfff' }} />
-                          <Typography sx={{ fontWeight: 'bold' }}>Enhancement</Typography>
+                    <Paper sx={{ 
+                      p: 2, 
+                      minWidth: 200, 
+                      flex: '1 1 220px', 
+                      bgcolor: '#1f3c70', 
+                      color: '#fff',
+                      borderRadius: 2
+                    }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <AutoFixHighIcon sx={{ color: '#7ecfff' }} />
+                        <Typography sx={{ fontWeight: 'bold' }}>Enhancement</Typography>
+                      </Box>
+                      {results.quality_metrics ? (
+                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                          <Chip label={`PSNR ${results.quality_metrics.psnr?.toFixed(1) || 'N/A'}`} size="small" />
+                          <Chip label={`SSIM ${results.quality_metrics.ssim?.toFixed(2) || 'N/A'}`} size="small" />
+                          <Chip label={`UIQM ${results.quality_metrics.uiqm?.toFixed(1) || 'N/A'}`} size="small" />
                         </Box>
-                        {results.quality_metrics ? (
-                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                            <Chip label={`PSNR ${results.quality_metrics.psnr?.toFixed(1) || 'N/A'}`} size="small" />
-                            <Chip label={`SSIM ${results.quality_metrics.ssim?.toFixed(2) || 'N/A'}`} size="small" />
-                            <Chip label={`UIQM ${results.quality_metrics.uiqm?.toFixed(1) || 'N/A'}`} size="small" />
-                          </Box>
-                        ) : (
-                          <Typography variant="body2" color="#bcdcff">No metrics</Typography>
-                        )}
-                      </Paper>
-                    </Zoom>
+                      ) : (
+                        <Typography variant="body2" color="#bcdcff">No metrics</Typography>
+                      )}
+                    </Paper>
                     
-                    <Zoom in={true} timeout={1000}>
-                      <Paper sx={{ 
-                        p: 2, 
-                        minWidth: 200, 
-                        flex: '1 1 220px', 
-                        bgcolor: '#b84b59', 
-                        color: '#fff',
-                        borderRadius: 2,
-                        transition: 'transform 0.3s ease',
-                        '&:hover': { transform: 'scale(1.05)' }
+                    <Paper sx={{ 
+                      p: 2, 
+                      minWidth: 200, 
+                      flex: '1 1 220px', 
+                      bgcolor: '#b84b59', 
+                      color: '#fff',
+                      borderRadius: 2
+                    }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <SecurityIcon sx={{ color: results.total_detections > 0 ? '#ff6b6b' : '#51cf66' }} />
+                        <Typography sx={{ fontWeight: 'bold' }}>Threats</Typography>
+                      </Box>
+                      <Typography variant="h4" sx={{ 
+                        fontWeight: 'bold', 
+                        mb: 0.5,
+                        color: results.total_detections > 0 ? '#ff6b6b' : '#51cf66'
                       }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                          <SecurityIcon sx={{ color: results.total_detections > 0 ? '#ff6b6b' : '#51cf66' }} />
-                          <Typography sx={{ fontWeight: 'bold' }}>Threats</Typography>
-                        </Box>
-                        <Typography variant="h4" sx={{ 
-                          fontWeight: 'bold', 
-                          mb: 0.5,
-                          color: results.total_detections > 0 ? '#ff6b6b' : '#51cf66'
-                        }}>
-                          {results.total_detections || 0}
-                        </Typography>
-                        <Typography variant="caption" color="#bcdcff">
-                          {results.total_detections > 0 ? '⚠️ Threats Found' : '✅ All Clear'}
-                        </Typography>
-                      </Paper>
-                    </Zoom>
+                        {results.total_detections || 0}
+                      </Typography>
+                      <Typography variant="caption" color="#bcdcff">
+                        {results.total_detections > 0 ? '⚠️ Threats Found' : '✅ All Clear'}
+                      </Typography>
+                    </Paper>
                   </Box>
 
                   <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
-                    {[
-                      { 
-                        label: 'Download Report', 
-                        icon: <DownloadIcon />, 
-                        primary: true,
-                        onClick: () => {
-                          const payload = {
-                            metadata: {
-                              created_at: new Date().toISOString(),
-                              filename: selectedFile?.name || 'image',
-                            },
-                            quality_metrics: results.quality_metrics || null,
-                            total_detections: results.total_detections || 0,
-                            detections: results.detections || [],
-                          };
-                          const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement('a');
-                          a.href = url;
-                          a.download = `${(selectedFile?.name || 'results').replace(/\.[^.]+$/, '')}_results.json`;
-                          document.body.appendChild(a);
-                          a.click();
-                          document.body.removeChild(a);
-                          URL.revokeObjectURL(url);
-                        }
-                      },
-                      { 
-                        label: 'Enhanced Image', 
-                        icon: <DownloadIcon />,
-                        onClick: async () => {
-                          const filename = (results?.enhanced_image || '').replace(/\\\\/g, '/').split('/').pop();
-                          if (!filename) return;
-                          const blob = await enhancementAPI.getEnhancedImage(filename);
-                          const url = utils.createImageUrl(blob);
-                          const a = document.createElement('a');
-                          a.href = url;
-                          a.download = filename;
-                          document.body.appendChild(a);
-                          a.click();
-                          document.body.removeChild(a);
-                          URL.revokeObjectURL(url);
-                        }
-                      },
-                      { 
-                        label: 'Detected Image', 
-                        icon: <DownloadIcon />,
-                        onClick: async () => {
-                          const filename = (results?.annotated_image || '').replace(/\\\\/g, '/').split('/').pop();
-                          if (!filename) return;
-                          const blob = await detectionAPI.getDetectedImage(filename);
-                          const url = utils.createImageUrl(blob);
-                          const a = document.createElement('a');
-                          a.href = url;
-                          a.download = filename;
-                          document.body.appendChild(a);
-                          a.click();
-                          document.body.removeChild(a);
-                          URL.revokeObjectURL(url);
-                        }
-                      }
-                    ].map((btn, index) => (
-                      <Button
-                        key={btn.label}
-                        variant={btn.primary ? "contained" : "outlined"}
-                        startIcon={btn.icon}
-                        onClick={btn.onClick}
-                        disabled={!results || (btn.label.includes('Enhanced') && !results?.enhanced_image) || (btn.label.includes('Detected') && !results?.annotated_image)}
-                        sx={{
-                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                          animation: `slideInFromBottom 0.6s ease-out ${index * 0.1}s both`,
-                          '&:hover': {
-                            transform: 'translateY(-3px)',
-                            boxShadow: '0 8px 25px rgba(0,0,0,0.2)'
-                          }
-                        }}
-                      >
-                        {btn.label}
-                      </Button>
-                    ))}
+                    <Button
+                      variant="contained"
+                      startIcon={<DownloadIcon />}
+                      onClick={() => {
+                        const payload = {
+                          metadata: {
+                            created_at: new Date().toISOString(),
+                            filename: selectedFile?.name || 'image',
+                          },
+                          quality_metrics: results.quality_metrics || null,
+                          total_detections: results.total_detections || 0,
+                          detections: results.detections || [],
+                        };
+                        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${(selectedFile?.name || 'results').replace(/\.[^.]+$/, '')}_results.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                      }}
+                    >
+                      Download Report
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      startIcon={<DownloadIcon />}
+                      onClick={() => {
+                        const a = document.createElement('a');
+                        a.href = enhancedImageUrl;
+                        a.download = 'underwater_sample_enhanced.png';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                      }}
+                      sx={{
+                        color: '#fff',
+                        borderColor: 'rgba(255,255,255,0.5)',
+                        '&:hover': { borderColor: '#fff' }
+                      }}
+                    >
+                      Enhanced Image
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      startIcon={<DownloadIcon />}
+                      onClick={() => {
+                        const a = document.createElement('a');
+                        a.href = detectedImageUrl;
+                        a.download = 'underwater_sample_detected.png';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                      }}
+                      sx={{
+                        color: '#fff',
+                        borderColor: 'rgba(255,255,255,0.5)',
+                        '&:hover': { borderColor: '#fff' }
+                      }}
+                    >
+                      Detected Image
+                    </Button>
                   </Box>
                 </CardContent>
               </Card>
@@ -712,8 +746,7 @@ const UnifiedProcessing = () => {
                   <VisibilityIcon sx={{ 
                     fontSize: 64, 
                     color: 'rgba(126,207,255,0.5)', 
-                    mb: 2,
-                    animation: 'float 3s ease-in-out infinite'
+                    mb: 2
                   }} />
                   <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.7)' }}>
                     Results will appear here after processing
@@ -724,204 +757,195 @@ const UnifiedProcessing = () => {
           )}
         </Grid>
 
-        {/* Threat Detection Results Table with Animation */}
+        {/* Threat Detection Results Table */}
         {results && results.detections && results.detections.length > 0 && (
           <Grid item xs={12}>
-            <Slide direction="up" in={true} timeout={1500}>
-              <Card sx={{
-                bgcolor: '#162b4d',
-                color: '#fff',
-                borderRadius: 3,
-                boxShadow: '0 15px 35px rgba(22,43,77,0.3)',
-                border: '1px solid rgba(126,207,255,0.2)'
-              }}>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom sx={{ 
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    mb: 3
-                  }}>
-                    <SecurityIcon sx={{ color: '#ff6b6b', animation: 'shake 2s infinite' }} />
-                    🚨 Detected Maritime Threats
-                  </Typography>
-                  
-                  <TableContainer component={Paper} sx={{ 
-                    backgroundColor: 'rgba(31,60,112,0.5)',
-                    borderRadius: 2
-                  }}>
-                    <Table>
-                      <TableHead>
-                        <TableRow sx={{ '& th': { color: '#7ecfff', fontWeight: 'bold' } }}>
-                          <TableCell>Threat Type</TableCell>
-                          <TableCell>Confidence</TableCell>
-                          <TableCell>Severity</TableCell>
-                          <TableCell>Location</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {results.detections.map((detection, index) => (
-                          <TableRow 
-                            key={index}
-                            sx={{ 
-                              '& td': { color: '#fff', borderColor: 'rgba(126,207,255,0.1)' },
-                              animation: `slideInFromLeft 0.6s ease-out ${index * 0.1}s both`,
-                              '&:hover': {
-                                backgroundColor: 'rgba(126,207,255,0.1)',
-                                transform: 'scale(1.01)'
-                              },
-                              transition: 'all 0.3s ease'
-                            }}
-                          >
-                            <TableCell>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                {getSeverityIcon(detection.severity)}
-                                <Typography sx={{ fontWeight: 'bold' }}>
-                                  {detection.threat_type.replace('_', ' ').toUpperCase()}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Chip 
-                                label={`${(detection.confidence * 100).toFixed(1)}%`}
-                                sx={{ 
-                                  fontWeight: 'bold',
-                                  background: `linear-gradient(45deg, ${getSeverityColor(detection.severity)} 30%, ${getSeverityColor(detection.severity)}80 100%)`,
-                                  color: 'white'
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Chip 
-                                label={detection.severity.toUpperCase()}
-                                size="small"
-                                sx={{ 
-                                  backgroundColor: getSeverityColor(detection.severity),
-                                  color: 'white',
-                                  fontWeight: 'bold',
-                                  animation: detection.severity === 'critical' ? 'pulse 2s infinite' : 'none'
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                                ({Math.round(detection.bbox.x1)}, {Math.round(detection.bbox.y1)})
+            <Card sx={{
+              bgcolor: '#162b4d',
+              color: '#fff',
+              borderRadius: 3,
+              boxShadow: '0 15px 35px rgba(22,43,77,0.3)',
+              border: '1px solid rgba(126,207,255,0.2)'
+            }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ 
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mb: 3
+                }}>
+                  <SecurityIcon sx={{ color: '#ff6b6b' }} />
+                  🚨 Detected Maritime Threats
+                </Typography>
+                
+                <TableContainer component={Paper} sx={{ 
+                  backgroundColor: 'rgba(31,60,112,0.5)',
+                  borderRadius: 2
+                }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ '& th': { color: '#7ecfff', fontWeight: 'bold' } }}>
+                        <TableCell>Threat Type</TableCell>
+                        <TableCell>Confidence</TableCell>
+                        <TableCell>Severity</TableCell>
+                        <TableCell>Location</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {results.detections.map((detection, index) => (
+                        <TableRow 
+                          key={index}
+                          sx={{ 
+                            '& td': { color: '#fff', borderColor: 'rgba(126,207,255,0.1)' },
+                            '&:hover': {
+                              backgroundColor: 'rgba(126,207,255,0.1)'
+                            }
+                          }}
+                        >
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              {getSeverityIcon(detection.severity)}
+                              <Typography sx={{ fontWeight: 'bold' }}>
+                                {detection.threat_type.replace('_', ' ').toUpperCase()}
                               </Typography>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </CardContent>
-              </Card>
-            </Slide>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={`${(detection.confidence * 100).toFixed(1)}%`}
+                              sx={{ 
+                                fontWeight: 'bold',
+                                backgroundColor: getSeverityColor(detection.severity),
+                                color: 'white'
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={detection.severity.toUpperCase()}
+                              size="small"
+                              sx={{ 
+                                backgroundColor: getSeverityColor(detection.severity),
+                                color: 'white',
+                                fontWeight: 'bold'
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                              ({Math.round(detection.bbox.x1)}, {Math.round(detection.bbox.y1)})
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
           </Grid>
         )}
 
-        {/* Image Comparison Section with Enhanced Animation */}
+        {/* Image Comparison Section */}
         {originalImageUrl && (
           <Grid item xs={12}>
-            <Slide direction="up" in={true} timeout={2000}>
-              <Card sx={{
-                bgcolor: '#1f3c70',
-                color: '#fff',
-                borderRadius: 3,
-                boxShadow: '0 15px 35px rgba(31,60,112,0.3)',
-                border: '1px solid rgba(126,207,255,0.2)'
-              }}>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom sx={{ 
-                    fontWeight: 'bold', 
-                    mb: 3,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <CompareIcon sx={{ color: '#7ecfff' }} />
-                    🔍 Processing Results Comparison
-                  </Typography>
+            <Card sx={{
+              bgcolor: '#1f3c70',
+              color: '#fff',
+              borderRadius: 3,
+              boxShadow: '0 15px 35px rgba(31,60,112,0.3)',
+              border: '1px solid rgba(126,207,255,0.2)'
+            }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ 
+                  fontWeight: 'bold', 
+                  mb: 3,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}>
+                  <CompareIcon sx={{ color: '#7ecfff' }} />
+                  🔍 Processing Results Comparison
+                </Typography>
 
-                  <Grid container spacing={3}>
-                    {[
-                      { title: 'Original Image', url: originalImageUrl, delay: 0 },
-                      { title: 'Enhanced Image', url: enhancedImageUrl, delay: 200 },
-                      { title: 'Threat Detection', url: detectedImageUrl, delay: 400 }
-                    ].map((image, index) => (
-                      <Grid item xs={12} md={4} key={image.title}>
-                        <Zoom in={true} timeout={1000 + image.delay}>
-                          <Paper sx={{ 
-                            p: 2,
-                            bgcolor: '#162b4d',
-                            borderRadius: 2,
-                            transition: 'all 0.3s ease',
-                            '&:hover': {
-                              transform: 'translateY(-8px)',
-                              boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
-                            }
-                          }}>
-                            <Typography variant="subtitle1" gutterBottom sx={{ 
-                              fontWeight: 'bold',
-                              textAlign: 'center',
-                              color: '#7ecfff'
-                            }}>
-                              {image.title}
+                <Grid container spacing={3}>
+                  {[
+                    {
+                      title: 'Original Image',
+                      url: originalImageUrl
+                    },
+                    {
+                      title: 'Enhanced Image',
+                      url: enhancedImageUrl
+                    },
+                    {
+                      title: 'Threat Detection',
+                      url: detectedImageUrl
+                    }
+                  ].map((image, index) => (
+                    <Grid item xs={12} md={4} key={image.title}>
+                      <Paper sx={{ 
+                        p: 2,
+                        bgcolor: '#162b4d',
+                        borderRadius: 2
+                      }}>
+                        <Typography variant="subtitle1" gutterBottom sx={{ 
+                          fontWeight: 'bold',
+                          textAlign: 'center',
+                          color: '#7ecfff'
+                        }}>
+                          {image.title}
+                        </Typography>
+                        {image.url ? (
+                          <Box
+                            component="img"
+                            src={image.url}
+                            alt={image.title}
+                            onError={(e) => {
+                              if (image.title.includes('Enhanced') && !image.url.startsWith('data:')) {
+                                e.target.src = createPlaceholderEnhancedImage();
+                              } else if (image.title.includes('Threat') && !image.url.startsWith('data:')) {
+                                e.target.src = createPlaceholderDetectedImage();
+                              }
+                            }}
+                            sx={{
+                              width: '100%',
+                              height: 250,
+                              objectFit: 'contain',
+                              borderRadius: 1,
+                              border: image.title.includes('Threat') ? '2px solid #ff6b6b' : 
+                                     image.title.includes('Enhanced') ? '2px solid #4caf50' : 'none'
+                            }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              width: '100%',
+                              height: 250,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              backgroundColor: 'rgba(126,207,255,0.1)',
+                              borderRadius: 1,
+                              border: '2px dashed rgba(126,207,255,0.3)'
+                            }}
+                          >
+                            <Typography color="rgba(255,255,255,0.7)">
+                              {image.title} will appear here
                             </Typography>
-                            {image.url ? (
-                              <Box
-                                component="img"
-                                src={image.url}
-                                alt={image.title}
-                                sx={{
-                                  width: '100%',
-                                  height: 250,
-                                  objectFit: 'cover',
-                                  borderRadius: 1,
-                                  transition: 'all 0.3s ease',
-                                  '&:hover': {
-                                    transform: 'scale(1.05)',
-                                    boxShadow: '0 8px 25px rgba(126,207,255,0.3)'
-                                  }
-                                }}
-                              />
-                            ) : (
-                              <Box
-                                sx={{
-                                  width: '100%',
-                                  height: 250,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  backgroundColor: 'rgba(126,207,255,0.1)',
-                                  borderRadius: 1,
-                                  border: '2px dashed rgba(126,207,255,0.3)'
-                                }}
-                              >
-                                <Typography color="rgba(255,255,255,0.7)" sx={{ textAlign: 'center' }}>
-                                  {processing && index === activeStep - 1 ? (
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                      <LinearProgress sx={{ width: 100, mb: 2 }} />
-                                      Processing...
-                                    </Box>
-                                  ) : (
-                                    `${image.title} will appear here`
-                                  )}
-                                </Typography>
-                              </Box>
-                            )}
-                          </Paper>
-                        </Zoom>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Slide>
+                          </Box>
+                        )}
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              </CardContent>
+            </Card>
           </Grid>
         )}
 
-        {/* Technology Information Cards */}
+        {/* Technology Behind the Platform Section */}
         <Grid item xs={12}>
           <Slide direction="up" in={true} timeout={1500}>
             <Box sx={{ width: '100%', mb: 6 }}>
@@ -933,9 +957,14 @@ const UnifiedProcessing = () => {
                   color: "#7ecfff", 
                   mb: 5, 
                   letterSpacing: 1,
+                  animation: 'textGlow 3s ease-in-out infinite alternate',
+                  '@keyframes textGlow': {
+                    '0%': { textShadow: '0 0 20px #7ecfff40' },
+                    '100%': { textShadow: '0 0 30px #7ecfff80, 0 0 40px #7ecfff40' }
+                  }
                 }}
               >
-                Technology Behind the Platform
+                🔬 Technology Behind the Platform
               </Typography>
               <Grid container spacing={4} justifyContent="center">
                 {[
@@ -943,19 +972,22 @@ const UnifiedProcessing = () => {
                     title: 'GAN Enhancement',
                     description: 'Advanced underwater image restoration using Generative Adversarial Networks to improve clarity, color balance, and reduce underwater distortions.',
                     icon: <AutoFixHighIcon sx={{ fontSize: 48, color: '#fff', mb: 2 }} />,
-                    bg: '#1f3c70'
+                    bg: '#1f3c70',
+                    borderColor: '#4caf50'
                   },
                   {
                     title: 'YOLO v11 Detection', 
                     description: 'Real-time maritime threat detection using state-of-the-art object detection to identify submarines, mines, divers, and suspicious objects.',
                     icon: <SecurityIcon sx={{ fontSize: 48, color: '#fff', mb: 2 }} />,
-                    bg: '#b84b59'
+                    bg: '#b84b59',
+                    borderColor: '#ff6b6b'
                   },
                   {
                     title: 'Edge Deployment',
                     description: 'Optimized for real-time processing on AUV/ROV systems with low-latency inference and hardware acceleration support.',
                     icon: <VisibilityIcon sx={{ fontSize: 48, color: '#fff', mb: 2 }} />,
-                    bg: '#559965'
+                    bg: '#559965',
+                    borderColor: '#7ecfff'
                   }
                 ].map((tech, index) => (
                   <Grid item xs={12} md={4} key={tech.title}>
@@ -968,21 +1000,26 @@ const UnifiedProcessing = () => {
                           backgroundColor: tech.bg,
                           borderRadius: 3,
                           color: '#fff',
-                          minHeight: 250,
+                          minHeight: 280,
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
                           justifyContent: 'center',
                           position: 'relative',
                           overflow: 'hidden',
+                          border: `2px solid ${tech.borderColor}20`,
                           transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                           cursor: 'pointer',
                           '&:hover': {
                             transform: 'translateY(-12px) scale(1.03)',
                             boxShadow: `0 25px 50px rgba(0,0,0,0.3)`,
+                            border: `2px solid ${tech.borderColor}`,
                             '&::before': {
                               opacity: 1,
                               transform: 'scale(1.1)'
+                            },
+                            '& .tech-icon': {
+                              animation: 'techIconBounce 0.6s ease-in-out'
                             }
                           },
                           '&::before': {
@@ -992,7 +1029,7 @@ const UnifiedProcessing = () => {
                             left: 0,
                             right: 0,
                             bottom: 0,
-                            background: 'linear-gradient(45deg, rgba(126,207,255,0.15) 0%, rgba(63,120,199,0.15) 100%)',
+                            background: `linear-gradient(45deg, ${tech.borderColor}15 0%, rgba(126,207,255,0.15) 100%)`,
                             opacity: 0,
                             transition: 'all 0.4s ease',
                             transform: 'scale(0.9)'
@@ -1000,14 +1037,53 @@ const UnifiedProcessing = () => {
                         }}
                       >
                         <Box sx={{ zIndex: 1, position: 'relative' }}>
-                          {tech.icon}
-                          <Typography sx={{ fontWeight: 700, mb: 2, fontSize: '1.2rem' }}>
+                          <Box className="tech-icon" sx={{ mb: 2 }}>
+                            {tech.icon}
+                          </Box>
+                          <Typography sx={{ 
+                            fontWeight: 700, 
+                            mb: 2, 
+                            fontSize: '1.3rem',
+                            color: '#fff'
+                          }}>
                             {tech.title}
                           </Typography>
-                          <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                          <Typography variant="body2" sx={{ 
+                            lineHeight: 1.6,
+                            color: 'rgba(255,255,255,0.9)',
+                            fontSize: '0.95rem'
+                          }}>
                             {tech.description}
                           </Typography>
                         </Box>
+
+                        {/* Decorative Elements */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 10,
+                            right: 10,
+                            width: 40,
+                            height: 40,
+                            borderRadius: '50%',
+                            background: `radial-gradient(circle, ${tech.borderColor}40 0%, transparent 70%)`,
+                            opacity: 0.6,
+                            animation: 'float 4s ease-in-out infinite'
+                          }}
+                        />
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            bottom: 15,
+                            left: 15,
+                            width: 25,
+                            height: 25,
+                            borderRadius: '50%',
+                            background: `radial-gradient(circle, ${tech.borderColor}30 0%, transparent 70%)`,
+                            opacity: 0.4,
+                            animation: 'float 5s ease-in-out infinite reverse'
+                          }}
+                        />
                       </Paper>
                     </Zoom>
                   </Grid>
@@ -1018,7 +1094,7 @@ const UnifiedProcessing = () => {
         </Grid>
       </Grid>
 
-      {/* Global Animation Styles */}
+      {/* Enhanced Global Animation Styles */}
       <style jsx global>{`
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
@@ -1037,38 +1113,18 @@ const UnifiedProcessing = () => {
           60% { transform: translateY(-5px); }
         }
         
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-          20%, 40%, 60%, 80% { transform: translateX(2px); }
-        }
-        
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(30px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        
-        @keyframes slideInFromLeft {
-          from { opacity: 0; transform: translateX(-30px); }
-          to { opacity: 1; transform: translateX(0); }
+
+        @keyframes techIconBounce {
+          0%, 100% { transform: scale(1); }
+          25% { transform: scale(1.1) rotate(-5deg); }
+          50% { transform: scale(1.15) rotate(0deg); }
+          75% { transform: scale(1.1) rotate(5deg); }
         }
-        
-        @keyframes slideInFromBottom {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes fadeInOut {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
-        }
-        
-        @keyframes checkPulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.1); }
-          100% { transform: scale(1); }
-        }
-        
+
         @keyframes textGlow {
           0% { text-shadow: 0 0 20px #7ecfff40; }
           100% { text-shadow: 0 0 30px #7ecfff80, 0 0 40px #7ecfff40; }

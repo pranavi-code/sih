@@ -37,6 +37,7 @@ import {
   Slide,
   Zoom,
   Collapse,
+  Link,
 } from '@mui/material';
 import {
   CloudDownload as CloudDownloadIcon,
@@ -53,6 +54,7 @@ import {
   Settings as SettingsIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
+  Launch as LaunchIcon,
 } from '@mui/icons-material';
 import { modelAPI } from '../services/api';
 
@@ -75,87 +77,9 @@ const ModelManagement = () => {
     try {
       // Load available models
       const available = await modelAPI.getAvailableModels();
-      
-      // Check if we got valid data, otherwise use sample data
-      const enhancementModels = available.enhancement_models && available.enhancement_models.length > 0 
-        ? available.enhancement_models 
-        : [
-            {
-              id: 'gan_v2_1_full',
-              name: 'GAN Enhancement v2.1 (Full)',
-              type: 'enhancement',
-              size: '245 MB',
-              accuracy: '96.2%',
-              speed: 'Medium',
-              description: 'Full-precision GAN model for maximum quality enhancement',
-              compatibility: ['GPU Server', 'High-end Edge'],
-              requirements: 'CUDA 11.0+, 8GB VRAM',
-            },
-            {
-              id: 'gan_v2_1_quantized',
-              name: 'GAN Enhancement v2.1 (Quantized)',
-              type: 'enhancement',
-              size: '89 MB',
-              accuracy: '94.8%',
-              speed: 'Fast',
-              description: 'INT8 quantized model optimized for edge deployment',
-              compatibility: ['AUV/ROV', 'Edge Devices', 'CPU'],
-              requirements: 'TensorRT 8.0+, 2GB RAM',
-            },
-            {
-              id: 'gan_lite_v1_5',
-              name: 'GAN Enhancement Lite v1.5',
-              type: 'enhancement',
-              size: '32 MB',
-              accuracy: '91.5%',
-              speed: 'Very Fast',
-              description: 'Lightweight model for real-time processing',
-              compatibility: ['Embedded Systems', 'Mobile Devices'],
-              requirements: '1GB RAM, ARM/x86',
-            },
-          ];
-
-      const detectionModels = available.detection_models && available.detection_models.length > 0
-        ? available.detection_models
-        : [
-            {
-              id: 'yolo_v11_underwater_full',
-              name: 'YOLO v11 Underwater (Full)',
-              type: 'detection',
-              size: '156 MB',
-              accuracy: '94.7%',
-              speed: 'Medium',
-              description: 'Full precision model trained on Indian Ocean maritime data',
-              compatibility: ['GPU Server', 'High-end Edge'],
-              requirements: 'CUDA 11.0+, 4GB VRAM',
-            },
-            {
-              id: 'yolo_v11_underwater_nano',
-              name: 'YOLO v11 Underwater (Nano)',
-              type: 'detection',
-              size: '12 MB',
-              accuracy: '89.3%',
-              speed: 'Very Fast',
-              description: 'Ultra-lightweight model for edge devices',
-              compatibility: ['AUV/ROV', 'Embedded Systems'],
-              requirements: '512MB RAM, ARM/x86',
-            },
-            {
-              id: 'yolo_v11_underwater_tensorrt',
-              name: 'YOLO v11 Underwater (TensorRT)',
-              type: 'detection',
-              size: '78 MB',
-              accuracy: '93.1%',
-              speed: 'Fast',
-              description: 'TensorRT optimized for NVIDIA edge devices',
-              compatibility: ['Jetson Series', 'NVIDIA Edge'],
-              requirements: 'TensorRT 8.0+, Jetson Xavier/Orin',
-            },
-          ];
-
       setAvailableModels({
-        enhancement: enhancementModels,
-        detection: detectionModels
+        enhancement: available.enhancement_models || [],
+        detection: available.detection_models || []
       });
 
       // Load installed models
@@ -163,7 +87,7 @@ const ModelManagement = () => {
       setInstalledModels(installed.installed_models || []);
     } catch (error) {
       console.error('Error loading models data:', error);
-      // Fallback to sample data
+      // Fallback to sample data - UPDATED to remove YOLO Nano
       setAvailableModels({
         enhancement: [
           {
@@ -213,17 +137,6 @@ const ModelManagement = () => {
             requirements: 'CUDA 11.0+, 4GB VRAM',
           },
           {
-            id: 'yolo_v11_underwater_nano',
-            name: 'YOLO v11 Underwater (Nano)',
-            type: 'detection',
-            size: '12 MB',
-            accuracy: '89.3%',
-            speed: 'Very Fast',
-            description: 'Ultra-lightweight model for edge devices',
-            compatibility: ['AUV/ROV', 'Embedded Systems'],
-            requirements: '512MB RAM, ARM/x86',
-          },
-          {
             id: 'yolo_v11_underwater_tensorrt',
             name: 'YOLO v11 Underwater (TensorRT)',
             type: 'detection',
@@ -233,18 +146,19 @@ const ModelManagement = () => {
             description: 'TensorRT optimized for NVIDIA edge devices',
             compatibility: ['Jetson Series', 'NVIDIA Edge'],
             requirements: 'TensorRT 8.0+, Jetson Xavier/Orin',
+            dockerImage: 'nvcr.io/nvidia/tensorrt:22.12-py3',
+            dockerLink: 'https://hub.docker.com/r/nvidia/tensorrt'
           },
         ]
       });
     }
   };
 
+  // Updated device types - only CPU, GPU, and AUV/ROV
   const deviceTypes = [
+    { value: 'cpu_only', label: 'CPU Only', icon: '⚙️' },
     { value: 'gpu_server', label: 'GPU Server', icon: '🖥️' },
     { value: 'auv_rov', label: 'AUV/ROV System', icon: '🤖' },
-    { value: 'jetson', label: 'NVIDIA Jetson', icon: '🔧' },
-    { value: 'embedded', label: 'Embedded Device', icon: '📱' },
-    { value: 'cpu_only', label: 'CPU Only', icon: '⚙️' },
   ];
 
   useEffect(() => {
@@ -337,6 +251,7 @@ const ModelManagement = () => {
     const isExpanded = expandedModel === model.id;
     const isInstalled = installedModels.some(m => m.id === model.id);
     const isDownloading = downloading[model.id];
+    const isTensorRT = model.id === 'yolo_v11_underwater_tensorrt';
 
     return (
       <Fade in={true} timeout={800}>
@@ -373,13 +288,38 @@ const ModelManagement = () => {
                   <SecurityIcon sx={{ color: '#f6a5c1', mr: 1.5, fontSize: 28 }} />
                 )}
                 <Box>
-                  <Typography variant="subtitle1" sx={{ 
-                    fontWeight: 'bold', 
-                    color: type === 'enhancement' ? '#7ecfff' : '#f6a5c1',
-                    mb: 0.5
-                  }}>
-                    {model.name}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="subtitle1" sx={{ 
+                      fontWeight: 'bold', 
+                      color: type === 'enhancement' ? '#7ecfff' : '#f6a5c1',
+                      mb: 0.5
+                    }}>
+                      {model.name}
+                    </Typography>
+                    {/* Docker Hub link for TensorRT model */}
+                    {isTensorRT && (
+                      <Tooltip title="View Docker Container">
+                        <IconButton 
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(model.dockerLink, '_blank');
+                          }}
+                          sx={{ 
+                            color: '#7ecfff',
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                              color: '#fff',
+                              backgroundColor: 'rgba(126,207,255,0.2)',
+                              transform: 'scale(1.1)'
+                            }
+                          }}
+                        >
+                          <LaunchIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </Box>
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
                     <Chip 
                       label={model.size} 
@@ -446,6 +386,40 @@ const ModelManagement = () => {
                 <Typography variant="body2" sx={{ color: '#dbe9ff', mb: 2 }}>
                   {model.description}
                 </Typography>
+                
+                {/* Show Docker container info for TensorRT model */}
+                {isTensorRT && (
+                  <Alert 
+                    severity="info" 
+                    sx={{
+                      mb: 2,
+                      bgcolor: 'rgba(33, 150, 243, 0.1)',
+                      color: '#90caf9',
+                      border: '1px solid rgba(33, 150, 243, 0.2)',
+                      '& .MuiAlert-icon': {
+                        color: '#90caf9'
+                      }
+                    }}
+                    action={
+                      <Button
+                        color="inherit"
+                        size="small"
+                        onClick={() => window.open(model.dockerLink, '_blank')}
+                        startIcon={<LaunchIcon />}
+                        sx={{
+                          color: '#90caf9',
+                          '&:hover': {
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)'
+                          }
+                        }}
+                      >
+                        View Container
+                      </Button>
+                    }
+                  >
+                    🐳 Available as Docker container: {model.dockerImage}
+                  </Alert>
+                )}
                 
                 <Grid container spacing={2} sx={{ mb: 2 }}>
                   <Grid item xs={12} sm={6}>
@@ -715,25 +689,8 @@ const ModelManagement = () => {
                   filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
                 }} />
                 <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
-                  {(() => {
-                    const enhancementTotal = availableModels?.enhancement?.reduce((sum, m) => {
-                      if (m && m.size && typeof m.size === 'string') {
-                        const sizeNum = parseInt(m.size.replace(' MB', '').replace('MB', ''));
-                        return sum + (isNaN(sizeNum) ? 0 : sizeNum);
-                      }
-                      return sum;
-                    }, 0) || 0;
-                    
-                    const detectionTotal = availableModels?.detection?.reduce((sum, m) => {
-                      if (m && m.size && typeof m.size === 'string') {
-                        const sizeNum = parseInt(m.size.replace(' MB', '').replace('MB', ''));
-                        return sum + (isNaN(sizeNum) ? 0 : sizeNum);
-                      }
-                      return sum;
-                    }, 0) || 0;
-                    
-                    return (enhancementTotal + detectionTotal).toFixed(0);
-                  })()}
+                  {(availableModels.enhancement.reduce((sum, m) => sum + (m.size ? parseInt(m.size.replace(' MB', '')) : 0), 0) + 
+                    availableModels.detection.reduce((sum, m) => sum + (m.size ? parseInt(m.size.replace(' MB', '')) : 0), 0)).toFixed(0)}
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
                   Total Size (MB)
@@ -904,7 +861,7 @@ const ModelManagement = () => {
                               mt: 2
                             }}>
                               <Typography variant="caption" sx={{ color: '#7ecfff' }}>
-                                Installed: {model.installedAt ? new Date(model.installedAt).toLocaleDateString() : 'Recently'}
+                                Installed: {new Date(model.installedAt).toLocaleDateString()}
                               </Typography>
                               
                               <Tooltip title="Uninstall Model">

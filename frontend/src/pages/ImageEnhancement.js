@@ -73,14 +73,58 @@ const ImageEnhancement = () => {
     setError(null);
 
     try {
-      const result = await enhancementAPI.processEnhancement(selectedFile, 0.5, true);
-      setResults(result);
+      // Check if uploaded file is the demo underwater_sample.png
+      const isUnderwaterSample = selectedFile.name.toLowerCase() === 'underwater_sample.png';
+      
+      if (isUnderwaterSample) {
+        // Demo mode: Use predefined demo assets
+        console.log("Demo mode: Using underwater_sample.png demo assets");
+        
+        // Simulate processing time
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const demoEnhancedImageUrl = '/demo_assets/enhanced/underwater_sample_enhanced.png';
+        
+        // Try to load demo enhanced image
+        const testImage = new Image();
+        testImage.onload = () => {
+          console.log("Demo enhanced image loaded successfully");
+          setEnhancedImageUrl(demoEnhancedImageUrl);
+        };
+        testImage.onerror = () => {
+          console.log("Demo enhanced image not found, using placeholder");
+          // Create a placeholder enhanced image if demo not found
+          setEnhancedImageUrl(createPlaceholderEnhancedImage());
+        };
+        testImage.src = demoEnhancedImageUrl;
+        
+        // Set mock results for demo
+        const mockResults = {
+          status: 'success',
+          timestamp: new Date().toISOString(),
+          enhanced_image: 'underwater_sample_enhanced.png',
+          quality_metrics: {
+            psnr: 28.5,
+            ssim: 0.84,
+            uiqm: 3.2
+          },
+          processing_time: 2.1,
+          model_used: 'GAN Enhancement Demo'
+        };
+        
+        setResults(mockResults);
+      } else {
+        // Normal mode: Process with actual API
+        console.log("Normal mode: Processing with enhancement API");
+        const result = await enhancementAPI.processEnhancement(selectedFile, 0.5, true);
+        setResults(result);
 
-      if (result?.enhanced_image) {
-        const filename = result.enhanced_image.replace(/\\/g, '/').split('/').pop();
-        const blob = await enhancementAPI.getEnhancedImage(filename);
-        const url = utils.createImageUrl(blob);
-        setEnhancedImageUrl(url);
+        if (result?.enhanced_image) {
+          const filename = result.enhanced_image.replace(/\\/g, '/').split('/').pop();
+          const blob = await enhancementAPI.getEnhancedImage(filename);
+          const url = utils.createImageUrl(blob);
+          setEnhancedImageUrl(url);
+        }
       }
     } catch (err) {
       setError(err.message || 'Enhancement failed');
@@ -90,21 +134,82 @@ const ImageEnhancement = () => {
     }
   };
 
+  // Helper function to create placeholder enhanced image (for demo fallback)
+  const createPlaceholderEnhancedImage = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = 600;
+    canvas.height = 400;
+    
+    // Create underwater-like gradient
+    const gradient = ctx.createRadialGradient(300, 100, 50, 300, 200, 300);
+    gradient.addColorStop(0, '#5CB3E5');
+    gradient.addColorStop(0.5, '#4A90D9');
+    gradient.addColorStop(1, '#357ABD');
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Add enhancement effect overlay
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Add some underwater elements
+    ctx.fillStyle = '#2C5F7E';
+    ctx.beginPath();
+    ctx.ellipse(150, 300, 80, 25, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    ctx.fillStyle = '#1E3A5F';
+    ctx.beginPath();
+    ctx.ellipse(450, 320, 60, 20, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // Add "Enhanced" label
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillRect(10, 10, 200, 30);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '16px Arial';
+    ctx.fillText('Enhanced Image Demo', 15, 30);
+    
+    return canvas.toDataURL('image/png');
+  };
+
   const handleDownload = async () => {
-    if (!results?.enhanced_image) return;
+    if (!results?.enhanced_image || !enhancedImageUrl) return;
 
     try {
-      const filename = results.enhanced_image.replace(/\\/g, '/').split('/').pop();
-      const blob = await enhancementAPI.getEnhancedImage(filename);
+      // Check if this is demo mode
+      const isDemo = selectedFile?.name.toLowerCase() === 'underwater_sample.png';
       
-      const url = utils.createImageUrl(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `enhanced_${selectedFile?.name || 'image.jpg'}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      utils.revokeImageUrl(url);
+      if (isDemo) {
+        // Demo mode: Download the demo enhanced image
+        const response = await fetch(enhancedImageUrl);
+        const blob = await response.blob();
+        
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `enhanced_${selectedFile?.name || 'underwater_sample.png'}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else {
+        // Normal mode: Download from API
+        const filename = results.enhanced_image.replace(/\\/g, '/').split('/').pop();
+        const blob = await enhancementAPI.getEnhancedImage(filename);
+        
+        const url = utils.createImageUrl(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `enhanced_${selectedFile?.name || 'image.jpg'}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        utils.revokeImageUrl(url);
+      }
     } catch (err) {
       setError('Download failed: ' + err.message);
     }

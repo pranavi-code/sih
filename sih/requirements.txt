@@ -1,0 +1,45 @@
+# AI-Based Underwater Image Enhancement System - Dependencies
+
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# AI/ML Libraries
+tensorflow
+torch
+torchvision
+ultralytics
+opencv-python
+Pillow
+numpy
+scikit-image
+
+# Database
+motor
+pymongo
+
+# Image Processing & Metrics
+scikit-learn
+matplotlib
+seaborn
+
+# API & Utilities
+pydantic
+python-jose[cryptography]
+passlib[bcrypt]
+aiofiles
+httpx
+
+# Development
+pytest
+pytest-asyncio
+black
+flake8
+
+# Edge Deployment (optional)
+# tensorrt==8.6.1
+# pycuda==2022.2.2
+
+# Monitoring
+psutil

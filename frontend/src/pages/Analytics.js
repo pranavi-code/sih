@@ -60,13 +60,6 @@ const Analytics = () => {
     { name: 'Suspicious', value: 89, color: '#388e3c' },
   ];
 
-  const qualityTrends = [
-    { metric: 'PSNR', current: 31.2, target: 30.0, trend: '+2.1%' },
-    { metric: 'SSIM', current: 0.87, target: 0.85, trend: '+3.5%' },
-    { metric: 'UIQM', current: 3.4, target: 3.0, trend: '+4.2%' },
-    { metric: 'Processing Time', current: 2.1, target: 2.5, trend: '-8.7%' },
-  ];
-
   const systemStats = {
     totalProcessed: 2543,
     totalThreats: 487,
@@ -363,19 +356,14 @@ const Analytics = () => {
                 aria-controls="analytics-tabpanel-0"
               />
               <Tab 
-                label="Quality Metrics" 
+                label="Threat Analysis" 
                 id="analytics-tab-1"
                 aria-controls="analytics-tabpanel-1"
               />
               <Tab 
-                label="Threat Analysis" 
+                label="System Health" 
                 id="analytics-tab-2"
                 aria-controls="analytics-tabpanel-2"
-              />
-              <Tab 
-                label="System Health" 
-                id="analytics-tab-3"
-                aria-controls="analytics-tabpanel-3"
               />
             </Tabs>
           </Box>
@@ -502,117 +490,8 @@ const Analytics = () => {
               </Grid>
             </TabPanel>
 
-            {/* Quality Metrics Tab */}
-            <TabPanel value={tabValue} index={1}>
-              <Typography variant="h6" gutterBottom sx={{ 
-                fontWeight: 'bold',
-                color: '#7ecfff',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                mb: 3
-              }}>
-                <SpeedIcon /> 🎯 Image Enhancement Quality Analysis
-              </Typography>
-              
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={8}>
-                  <Paper sx={{ 
-                    p: 3, 
-                    bgcolor: 'rgba(31,60,112,0.5)',
-                    borderRadius: 3,
-                    border: '1px solid rgba(126,207,255,0.2)'
-                  }}>
-                    <Typography variant="subtitle1" gutterBottom sx={{ 
-                      fontWeight: 'bold',
-                      color: '#7ecfff'
-                    }}>
-                      Quality Metrics Trends
-                    </Typography>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={performanceData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(126,207,255,0.2)" />
-                        <XAxis dataKey="date" stroke="#bcdcff" fontSize={12} />
-                        <YAxis stroke="#bcdcff" fontSize={12} />
-                        <Tooltip 
-                          contentStyle={{
-                            backgroundColor: '#1f3c70',
-                            border: '1px solid #7ecfff',
-                            borderRadius: '8px',
-                            color: '#fff'
-                          }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="avgPsnr" 
-                          stroke="#4caf50" 
-                          strokeWidth={3} 
-                          name="Avg PSNR"
-                          dot={{ fill: '#4caf50', strokeWidth: 2, r: 4 }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="avgSsim" 
-                          stroke="#9c27b0" 
-                          strokeWidth={3} 
-                          name="Avg SSIM"
-                          dot={{ fill: '#9c27b0', strokeWidth: 2, r: 4 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </Paper>
-                </Grid>
-                
-                <Grid item xs={12} md={4}>
-                  <TableContainer component={Paper} sx={{
-                    bgcolor: 'rgba(31,60,112,0.5)',
-                    borderRadius: 3,
-                    border: '1px solid rgba(126,207,255,0.2)'
-                  }}>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow sx={{ '& th': { color: '#7ecfff', fontWeight: 'bold' } }}>
-                          <TableCell>Metric</TableCell>
-                          <TableCell>Current</TableCell>
-                          <TableCell>Trend</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {qualityTrends.map((item, index) => (
-                          <TableRow key={item.metric} sx={{ 
-                            '& td': { color: '#fff', borderColor: 'rgba(126,207,255,0.1)' },
-                            '&:hover': {
-                              backgroundColor: 'rgba(126,207,255,0.1)'
-                            }
-                          }}>
-                            <TableCell sx={{ fontWeight: 'bold' }}>{item.metric}</TableCell>
-                            <TableCell>
-                              <Typography sx={{ fontWeight: 'bold', color: '#7ecfff' }}>
-                                {item.current}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Chip 
-                                label={item.trend}
-                                size="small"
-                                sx={{
-                                  backgroundColor: item.trend.startsWith('+') ? '#4caf50' : '#2196f3',
-                                  color: 'white',
-                                  fontWeight: 'bold'
-                                }}
-                              />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Grid>
-              </Grid>
-            </TabPanel>
-
             {/* Threat Analysis Tab */}
-            <TabPanel value={tabValue} index={2}>
+            <TabPanel value={tabValue} index={1}>
               <Typography variant="h6" gutterBottom sx={{ 
                 fontWeight: 'bold',
                 color: '#7ecfff',
@@ -704,7 +583,7 @@ const Analytics = () => {
             </TabPanel>
 
             {/* System Health Tab */}
-            <TabPanel value={tabValue} index={3}>
+            <TabPanel value={tabValue} index={2}>
               <Typography variant="h6" gutterBottom sx={{ 
                 fontWeight: 'bold',
                 color: '#7ecfff',

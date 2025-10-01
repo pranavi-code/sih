@@ -1,0 +1,24 @@
+{
+  "daily_stats": {
+    "date": "2025-09-28",
+    "images_processed": 67,
+    "threats_detected": 18,
+    "critical_alerts": 3,
+    "average_processing_time": 2.1,
+    "system_uptime": "99.2%"
+  },
+  "performance_metrics": {
+    "enhancement_accuracy": 96.2,
+    "detection_accuracy": 94.7,
+    "average_psnr": 29.8,
+    "average_ssim": 0.85,
+    "average_uiqm": 3.4
+  },
+  "resource_usage": {
+    "cpu_usage": 45.2,
+    "memory_usage": 67.8,
+    "gpu_usage": 78.5,
+    "disk_usage": 23.4
+  },
+  "last_updated": "2025-09-28T10:45:00Z"
+}

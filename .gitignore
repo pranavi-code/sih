@@ -47,3 +47,4 @@ frontend/build/
 # Ignore deployment artifacts
 deployment/*.tar
 deployment/*.zip
+node_modules

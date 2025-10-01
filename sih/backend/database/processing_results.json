@@ -1,0 +1,30 @@
+[
+  {
+    "id": "proc_001",
+    "timestamp": "2025-09-28T10:45:00Z",
+    "original_filename": "underwater_patrol_001.jpg",
+    "enhanced_image": "enhanced/underwater_patrol_001_gan_enhanced.jpg",
+    "quality_metrics": {
+      "psnr": 28.5,
+      "ssim": 0.82,
+      "uiqm": 3.2
+    },
+    "processing_time": 2.3,
+    "model_version": "GAN-v2.1",
+    "status": "completed"
+  },
+  {
+    "id": "proc_002",
+    "timestamp": "2025-09-28T10:30:00Z",
+    "original_filename": "harbor_scan_002.png",
+    "enhanced_image": "enhanced/harbor_scan_002_gan_enhanced.png",
+    "quality_metrics": {
+      "psnr": 31.2,
+      "ssim": 0.89,
+      "uiqm": 3.8
+    },
+    "processing_time": 1.8,
+    "model_version": "GAN-v2.1",
+    "status": "completed"
+  }
+]
