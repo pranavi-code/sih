@@ -33,6 +33,10 @@ import {
   ListItemSecondaryAction,
   IconButton,
   Tooltip,
+  Fade,
+  Slide,
+  Zoom,
+  Collapse,
 } from '@mui/material';
 import {
   CloudDownload as CloudDownloadIcon,
@@ -47,6 +51,8 @@ import {
   Security as SecurityIcon,
   Devices as DevicesIcon,
   Settings as SettingsIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
 } from '@mui/icons-material';
 import { modelAPI } from '../services/api';
 
@@ -58,6 +64,7 @@ const ModelManagement = () => {
   const [deviceType, setDeviceType] = useState('');
   const [installedModels, setInstalledModels] = useState([]);
   const [availableModels, setAvailableModels] = useState({ enhancement: [], detection: [] });
+  const [expandedModel, setExpandedModel] = useState(null);
 
   // Load available and installed models
   useEffect(() => {
@@ -218,14 +225,27 @@ const ModelManagement = () => {
 
   const getCompatibilityChips = (compatibility) => {
     return compatibility.map((device, index) => (
-      <Chip
-        key={index}
-        label={device}
-        size="small"
-        variant="outlined"
-        sx={{ mr: 0.5, mb: 0.5 }}
-      />
+      <Zoom key={index} in={true} timeout={500 + index * 100}>
+        <Chip
+          label={device}
+          size="small"
+          variant="outlined"
+          sx={{ 
+            mr: 0.5, 
+            mb: 0.5,
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'scale(1.05)',
+              backgroundColor: 'rgba(126,207,255,0.1)'
+            }
+          }}
+        />
+      </Zoom>
     ));
+  };
+
+  const toggleModelDetails = (modelId) => {
+    setExpandedModel(expandedModel === modelId ? null : modelId);
   };
 
   const TabPanel = ({ children, value, index }) => (
@@ -234,343 +254,748 @@ const ModelManagement = () => {
     </div>
   );
 
+  // Model card component to replace table rows
+  const ModelCard = ({ model, type }) => {
+    const isExpanded = expandedModel === model.id;
+    const isInstalled = installedModels.some(m => m.id === model.id);
+    const isDownloading = downloading[model.id];
+
+    return (
+      <Fade in={true} timeout={800}>
+        <Card sx={{
+          mb: 2.5,
+          bgcolor: 'rgba(31,60,112,0.4)',
+          borderRadius: 2,
+          boxShadow: isExpanded 
+            ? '0 8px 25px rgba(126, 207, 255, 0.2)' 
+            : '0 4px 15px rgba(0, 0, 0, 0.2)',
+          border: isExpanded 
+            ? '1px solid rgba(126, 207, 255, 0.4)'
+            : '1px solid rgba(126, 207, 255, 0.1)',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            boxShadow: '0 8px 25px rgba(126, 207, 255, 0.2)',
+            transform: 'translateY(-4px)',
+            borderColor: 'rgba(126, 207, 255, 0.4)'
+          }
+        }}>
+          <CardContent sx={{ pb: 1 }}>
+            {/* Header section */}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              cursor: 'pointer',
+              pb: 1
+            }} onClick={() => toggleModelDetails(model.id)}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {type === 'enhancement' ? (
+                  <PsychologyIcon sx={{ color: '#7ecfff', mr: 1.5, fontSize: 28 }} />
+                ) : (
+                  <SecurityIcon sx={{ color: '#f6a5c1', mr: 1.5, fontSize: 28 }} />
+                )}
+                <Box>
+                  <Typography variant="subtitle1" sx={{ 
+                    fontWeight: 'bold', 
+                    color: type === 'enhancement' ? '#7ecfff' : '#f6a5c1',
+                    mb: 0.5
+                  }}>
+                    {model.name}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <Chip 
+                      label={model.size} 
+                      size="small" 
+                      sx={{ 
+                        bgcolor: 'rgba(126, 207, 255, 0.15)',
+                        color: '#bcdcff',
+                        borderRadius: '4px'
+                      }}
+                    />
+                    <Chip 
+                      label={model.accuracy} 
+                      size="small"
+                      sx={{ 
+                        bgcolor: 'rgba(76, 175, 80, 0.15)',
+                        color: '#b0e9b5',
+                        borderRadius: '4px'
+                      }}
+                    />
+                    <Chip 
+                      label={model.speed} 
+                      size="small" 
+                      sx={{ 
+                        bgcolor: `${getSpeedColor(model.speed)}22`,
+                        color: getSpeedColor(model.speed),
+                        borderRadius: '4px'
+                      }}
+                    />
+                  </Box>
+                </Box>
+              </Box>
+              
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {isInstalled && (
+                  <Chip 
+                    icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
+                    label="Installed" 
+                    size="small" 
+                    sx={{ 
+                      mr: 1.5, 
+                      bgcolor: 'rgba(76, 175, 80, 0.15)',
+                      color: '#b0e9b5',
+                      borderColor: 'transparent'
+                    }}
+                  />
+                )}
+                <IconButton 
+                  size="small"
+                  sx={{ color: '#7ecfff' }}
+                >
+                  {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              </Box>
+            </Box>
+
+            {/* Expanded details */}
+            <Collapse in={isExpanded}>
+              <Box sx={{ 
+                pt: 1, 
+                pb: 1,
+                mt: 1,
+                borderTop: '1px solid rgba(126, 207, 255, 0.15)'
+              }}>
+                <Typography variant="body2" sx={{ color: '#dbe9ff', mb: 2 }}>
+                  {model.description}
+                </Typography>
+                
+                <Grid container spacing={2} sx={{ mb: 2 }}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" sx={{ color: '#7ecfff', display: 'block', mb: 0.5 }}>
+                      Compatible with:
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {getCompatibilityChips(model.compatibility)}
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" sx={{ color: '#7ecfff', display: 'block', mb: 0.5 }}>
+                      Requirements:
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#dbe9ff' }}>
+                      {model.requirements}
+                    </Typography>
+                  </Grid>
+                </Grid>
+
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={isDownloading ? null : <CloudDownloadIcon />}
+                  onClick={() => handleDownloadClick(model)}
+                  disabled={isDownloading || isInstalled}
+                  sx={{
+                    background: isInstalled 
+                      ? 'rgba(76, 175, 80, 0.15)'
+                      : 'linear-gradient(90deg, #026773, #05a0b5)',
+                    color: isInstalled ? '#b0e9b5' : '#fff',
+                    boxShadow: 'none',
+                    textTransform: 'none',
+                    px: 3,
+                    '&:hover': {
+                      background: 'linear-gradient(90deg, #05a0b5, #026773)',
+                      boxShadow: '0 4px 15px rgba(5, 160, 181, 0.3)',
+                      transform: 'translateY(-2px)'
+                    },
+                    '&:disabled': {
+                      color: isInstalled ? '#b0e9b5' : 'rgba(255,255,255,0.5)'
+                    }
+                  }}
+                >
+                  {isDownloading ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <LinearProgress 
+                        size={16} 
+                        sx={{ 
+                          width: 60, 
+                          borderRadius: 5,
+                          bgcolor: 'rgba(255,255,255,0.2)',
+                          '& .MuiLinearProgress-bar': {
+                            bgcolor: '#fff'
+                          }
+                        }} 
+                      />
+                      Downloading...
+                    </Box>
+                  ) : isInstalled ? (
+                    'Installed'
+                  ) : (
+                    'Download Model'
+                  )}
+                </Button>
+              </Box>
+            </Collapse>
+          </CardContent>
+        </Card>
+      </Fade>
+    );
+  };
+
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <Typography variant="h4" gutterBottom sx={{ mb: 3, fontWeight: 'bold' }}>
-        🔧 AI Model Management
-      </Typography>
-      <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3 }}>
-        Download and manage AI models for edge device deployment
-      </Typography>
+    <Box sx={{ 
+      minHeight: '100vh', 
+      color: '#fff', 
+      bgcolor: 'transparent', 
+      px: 2, 
+      py: 0,
+      position: 'relative'
+    }}>
+      {/* Animated Background Elements */}
+      <Box sx={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: -1,
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: '20%',
+          left: '10%',
+          width: '200px',
+          height: '200px',
+          background: 'radial-gradient(circle, rgba(126,207,255,0.1) 0%, transparent 70%)',
+          borderRadius: '50%',
+          animation: 'float 6s ease-in-out infinite'
+        },
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          bottom: '20%',
+          right: '10%',
+          width: '150px',
+          height: '150px',
+          background: 'radial-gradient(circle, rgba(63,120,199,0.1) 0%, transparent 70%)',
+          borderRadius: '50%',
+          animation: 'float 8s ease-in-out infinite reverse'
+        }
+      }} />
+
+      {/* Hero Section */}
+      <Fade in={true} timeout={1000}>
+        <Box
+          sx={{
+            width: '100%',
+            minHeight: 120,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mb: 4,
+            pt: 2
+          }}
+        >
+          <Typography
+            variant="h3"
+            align="center"
+            sx={{
+              fontWeight: 800,
+              color: "#7ecfff",
+              mb: 2,
+              letterSpacing: 1.5,
+              fontSize: { xs: 28, sm: 38, md: 44 },
+              animation: 'textGlow 3s ease-in-out infinite alternate',
+              '@keyframes textGlow': {
+                '0%': { textShadow: '0 0 20px #7ecfff40' },
+                '100%': { textShadow: '0 0 30px #7ecfff80, 0 0 40px #7ecfff40' }
+              }
+            }}
+          >
+            💻 Model Management
+          </Typography>
+          <Typography
+            align="center"
+            sx={{
+              color: '#dbe9ff',
+              mb: 2,
+              maxWidth: 600,
+              fontSize: 16,
+              opacity: 0.9
+            }}
+          >
+            Download and manage AI models for maritime security applications
+          </Typography>
+        </Box>
+      </Fade>
 
       {/* Model Statistics */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <PsychologyIcon sx={{ fontSize: 40, color: 'white', mb: 1 }} />
-              <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
-                {availableModels.enhancement.length}
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                Enhancement Models
-              </Typography>
-            </CardContent>
-          </Card>
+          <Zoom in={true} timeout={800}>
+            <Card sx={{ 
+              background: 'linear-gradient(135deg, #026773 0%, #05a0b5 100%)',
+              borderRadius: 3,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-8px)',
+                boxShadow: '0 15px 30px rgba(5, 160, 181, 0.3)'
+              }
+            }}>
+              <CardContent sx={{ textAlign: 'center' }}>
+                <PsychologyIcon sx={{ 
+                  fontSize: 40, 
+                  color: 'white', 
+                  mb: 1,
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+                }} />
+                <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
+                  {availableModels.enhancement.length}
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                  Enhancement Models
+                </Typography>
+              </CardContent>
+            </Card>
+          </Zoom>
         </Grid>
         
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ background: 'linear-gradient(135deg, #f093fb, #f5576c)' }}>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <SecurityIcon sx={{ fontSize: 40, color: 'white', mb: 1 }} />
-              <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
-                {availableModels.detection.length}
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                Detection Models
-              </Typography>
-            </CardContent>
-          </Card>
+          <Zoom in={true} timeout={1000}>
+            <Card sx={{ 
+              background: 'linear-gradient(135deg, #e16f62 0%, #c25450 100%)',
+              borderRadius: 3,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-8px)',
+                boxShadow: '0 15px 30px rgba(225, 111, 98, 0.3)'
+              }
+            }}>
+              <CardContent sx={{ textAlign: 'center' }}>
+                <SecurityIcon sx={{ 
+                  fontSize: 40, 
+                  color: 'white', 
+                  mb: 1,
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+                }} />
+                <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
+                  {availableModels.detection.length}
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                  Detection Models
+                </Typography>
+              </CardContent>
+            </Card>
+          </Zoom>
         </Grid>
         
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ background: 'linear-gradient(135deg, #4facfe, #00f2fe)' }}>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <DevicesIcon sx={{ fontSize: 40, color: 'white', mb: 1 }} />
-              <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
-                {installedModels.length}
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                Installed Models
-              </Typography>
-            </CardContent>
-          </Card>
+          <Zoom in={true} timeout={1200}>
+            <Card sx={{ 
+              background: 'linear-gradient(135deg, #3e9b6d 0%, #6bbd9a 100%)',
+              borderRadius: 3,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-8px)',
+                boxShadow: '0 15px 30px rgba(62, 155, 109, 0.3)'
+              }
+            }}>
+              <CardContent sx={{ textAlign: 'center' }}>
+                <DevicesIcon sx={{ 
+                  fontSize: 40, 
+                  color: 'white', 
+                  mb: 1,
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+                }} />
+                <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
+                  {installedModels.length}
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                  Installed Models
+                </Typography>
+              </CardContent>
+            </Card>
+          </Zoom>
         </Grid>
         
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ background: 'linear-gradient(135deg, #fa709a, #fee140)' }}>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <StorageIcon sx={{ fontSize: 40, color: 'white', mb: 1 }} />
-              <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
-                {(availableModels.enhancement.reduce((sum, m) => sum + parseInt(m.size), 0) + 
-                  availableModels.detection.reduce((sum, m) => sum + parseInt(m.size), 0)).toFixed(0)}
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                Total Size (MB)
-              </Typography>
-            </CardContent>
-          </Card>
+          <Zoom in={true} timeout={1400}>
+            <Card sx={{ 
+              background: 'linear-gradient(135deg, #e7cd90 0%, #dfb15b 100%)',
+              borderRadius: 3,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-8px)',
+                boxShadow: '0 15px 30px rgba(231, 205, 144, 0.3)'
+              }
+            }}>
+              <CardContent sx={{ textAlign: 'center' }}>
+                <StorageIcon sx={{ 
+                  fontSize: 40, 
+                  color: 'white', 
+                  mb: 1,
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+                }} />
+                <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
+                  {(availableModels.enhancement.reduce((sum, m) => sum + parseInt(m.size), 0) + 
+                    availableModels.detection.reduce((sum, m) => sum + parseInt(m.size), 0)).toFixed(0)}
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                  Total Size (MB)
+                </Typography>
+              </CardContent>
+            </Card>
+          </Zoom>
         </Grid>
       </Grid>
 
       {/* Main Content */}
-      <Card>
-        <CardContent>
-          <Tabs value={selectedTab} onChange={(e, newValue) => setSelectedTab(newValue)}>
-            <Tab label="Available Models" />
-            <Tab label="Installed Models" />
-            <Tab label="Device Configuration" />
-          </Tabs>
+      <Slide direction="up" in={true} timeout={1500}>
+        <Card sx={{
+          bgcolor: 'rgba(1, 24, 42, 0.7)',
+          color: '#fff',
+          borderRadius: 3,
+          boxShadow: '0 15px 35px rgba(1, 24, 42, 0.5)',
+          border: '1px solid rgba(5, 160, 181, 0.2)'
+        }}>
+          <CardContent>
+            <Tabs 
+              value={selectedTab} 
+              onChange={(e, newValue) => setSelectedTab(newValue)}
+              sx={{
+                '& .MuiTab-root': {
+                  color: '#bcdcff',
+                  transition: 'all 0.3s ease',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  fontSize: 16,
+                  '&:hover': {
+                    color: '#05a0b5',
+                  }
+                },
+                '& .Mui-selected': {
+                  color: '#05a0b5 !important',
+                  fontWeight: 600
+                },
+                '& .MuiTabs-indicator': {
+                  backgroundColor: '#05a0b5',
+                  height: 3,
+                  borderRadius: '3px 3px 0 0'
+                }
+              }}
+            >
+              <Tab label="Available Models" />
+              <Tab label="Installed Models" />
+              <Tab label="Device Configuration" />
+            </Tabs>
 
-          {/* Available Models Tab */}
-          <TabPanel value={selectedTab} index={0}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-              Download AI Models for Edge Deployment
-            </Typography>
-            
-            {/* Enhancement Models */}
-            <Typography variant="subtitle1" sx={{ mt: 3, mb: 2, fontWeight: 'bold' }}>
-              🎨 Image Enhancement Models (GAN)
-            </Typography>
-            <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell><strong>Model</strong></TableCell>
-                    <TableCell><strong>Size</strong></TableCell>
-                    <TableCell><strong>Accuracy</strong></TableCell>
-                    <TableCell><strong>Speed</strong></TableCell>
-                    <TableCell><strong>Compatibility</strong></TableCell>
-                    <TableCell><strong>Action</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {availableModels.enhancement.map((model) => (
-                    <TableRow key={model.id}>
-                      <TableCell>
-                        <Box>
-                          <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                            {model.name}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {model.description}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Chip label={model.size} size="small" />
-                      </TableCell>
-                      <TableCell>
-                        <Typography sx={{ color: 'success.main', fontWeight: 'bold' }}>
-                          {model.accuracy}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={model.speed} 
-                          size="small"
-                          sx={{ 
-                            backgroundColor: getSpeedColor(model.speed),
-                            color: 'white'
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {getCompatibilityChips(model.compatibility)}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={downloading[model.id] ? <LinearProgress /> : <CloudDownloadIcon />}
-                          onClick={() => handleDownloadClick(model)}
-                          disabled={downloading[model.id] || installedModels.some(m => m.id === model.id)}
-                        >
-                          {downloading[model.id] ? 'Downloading...' : 
-                           installedModels.some(m => m.id === model.id) ? 'Installed' : 'Download'}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            {/* Detection Models */}
-            <Typography variant="subtitle1" sx={{ mt: 3, mb: 2, fontWeight: 'bold' }}>
-              🛡️ Threat Detection Models (YOLO v11)
-            </Typography>
-            <TableContainer component={Paper} variant="outlined">
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell><strong>Model</strong></TableCell>
-                    <TableCell><strong>Size</strong></TableCell>
-                    <TableCell><strong>Accuracy</strong></TableCell>
-                    <TableCell><strong>Speed</strong></TableCell>
-                    <TableCell><strong>Compatibility</strong></TableCell>
-                    <TableCell><strong>Action</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {availableModels.detection.map((model) => (
-                    <TableRow key={model.id}>
-                      <TableCell>
-                        <Box>
-                          <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                            {model.name}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {model.description}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Chip label={model.size} size="small" />
-                      </TableCell>
-                      <TableCell>
-                        <Typography sx={{ color: 'success.main', fontWeight: 'bold' }}>
-                          {model.accuracy}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={model.speed} 
-                          size="small"
-                          sx={{ 
-                            backgroundColor: getSpeedColor(model.speed),
-                            color: 'white'
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {getCompatibilityChips(model.compatibility)}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={downloading[model.id] ? <LinearProgress /> : <CloudDownloadIcon />}
-                          onClick={() => handleDownloadClick(model)}
-                          disabled={downloading[model.id] || installedModels.some(m => m.id === model.id)}
-                        >
-                          {downloading[model.id] ? 'Downloading...' : 
-                           installedModels.some(m => m.id === model.id) ? 'Installed' : 'Download'}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </TabPanel>
-
-          {/* Installed Models Tab */}
-          <TabPanel value={selectedTab} index={1}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-              Installed Models on Edge Devices
-            </Typography>
-            
-            {installedModels.length > 0 ? (
-              <List>
-                {installedModels.map((model) => (
-                  <ListItem key={model.id} divider>
-                    <ListItemIcon>
-                      {model.type === 'enhancement' ? <PsychologyIcon color="primary" /> : <SecurityIcon color="error" />}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                            {model.name}
-                          </Typography>
-                          <Chip label={model.deviceType} size="small" variant="outlined" />
-                          <Chip label={model.size} size="small" />
-                        </Box>
-                      }
-                      secondary={
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            Installed: {new Date(model.installedAt).toLocaleDateString()}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Accuracy: {model.accuracy} • Speed: {model.speed}
-                          </Typography>
-                        </Box>
-                      }
-                    />
-                    <ListItemSecondaryAction>
-                      <Tooltip title="Uninstall Model">
-                        <IconButton edge="end" onClick={() => handleUninstall(model.id)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
-              </List>
-            ) : (
-              <Paper sx={{ p: 4, textAlign: 'center' }}>
-                <DevicesIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  No Models Installed
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Download models from the Available Models tab to get started
-                </Typography>
-              </Paper>
-            )}
-          </TabPanel>
-
-          {/* Device Configuration Tab */}
-          <TabPanel value={selectedTab} index={2}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-              Edge Device Configuration
-            </Typography>
-            
-            <Grid container spacing={3}>
-              {deviceTypes.map((device) => (
-                <Grid item xs={12} md={6} key={device.value}>
-                  <Paper variant="outlined" sx={{ p: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Typography variant="h4" sx={{ mr: 2 }}>{device.icon}</Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                        {device.label}
-                      </Typography>
-                    </Box>
-                    
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      {device.value === 'gpu_server' && 'High-performance server with dedicated GPU for maximum accuracy'}
-                      {device.value === 'auv_rov' && 'Autonomous underwater vehicles with limited computational resources'}
-                      {device.value === 'jetson' && 'NVIDIA Jetson series for edge AI with GPU acceleration'}
-                      {device.value === 'embedded' && 'Low-power embedded systems for real-time processing'}
-                      {device.value === 'cpu_only' && 'CPU-only deployment for basic processing capabilities'}
-                    </Typography>
-                    
-                    <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                      <Chip 
-                        label={`${installedModels.filter(m => m.deviceType === device.value).length} Installed`}
-                        size="small"
-                        color="primary"
+            {/* Available Models Tab */}
+            <TabPanel value={selectedTab} index={0}>
+              <Fade in={selectedTab === 0} timeout={800}>
+                <Box>
+                  <Typography variant="h6" gutterBottom sx={{ 
+                    fontWeight: 'bold',
+                    color: '#05a0b5',
+                    mb: 3
+                  }}>
+                    🎨 Image Enhancement Models
+                  </Typography>
+                  
+                  {/* Enhancement Models Cards */}
+                  <Box sx={{ mb: 4 }}>
+                    {availableModels.enhancement.map((model, index) => (
+                      <ModelCard 
+                        key={model.id} 
+                        model={model} 
+                        type="enhancement" 
                       />
-                    </Box>
-                    
-                    <Button variant="outlined" size="small" startIcon={<SettingsIcon />}>
-                      Configure
-                    </Button>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
+                    ))}
+                  </Box>
 
-            <Alert severity="info" sx={{ mt: 3 }}>
-              <strong>Edge Deployment:</strong> Models are automatically optimized for your selected device type.
-              TensorRT optimization is applied for NVIDIA devices, while quantization is used for CPU-only deployments.
-            </Alert>
-          </TabPanel>
-        </CardContent>
-      </Card>
+                  <Typography variant="h6" gutterBottom sx={{ 
+                    fontWeight: 'bold',
+                    color: '#e16f62',
+                    mb: 3
+                  }}>
+                    🛡️ Threat Detection Models
+                  </Typography>
+
+                  {/* Detection Models Cards */}
+                  <Box>
+                    {availableModels.detection.map((model) => (
+                      <ModelCard 
+                        key={model.id} 
+                        model={model} 
+                        type="detection" 
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              </Fade>
+            </TabPanel>
+
+            {/* Installed Models Tab */}
+            <TabPanel value={selectedTab} index={1}>
+              <Fade in={selectedTab === 1} timeout={800}>
+                <Box>
+                  <Typography variant="h6" gutterBottom sx={{ 
+                    fontWeight: 'bold',
+                    color: '#05a0b5',
+                    mb: 3
+                  }}>
+                    Installed Models on Edge Devices
+                  </Typography>
+                  
+                  {installedModels.length > 0 ? (
+                    <List sx={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                      gap: 2
+                    }}>
+                      {installedModels.map((model, index) => (
+                        <Slide key={model.id} direction="right" in={true} timeout={800 + index * 200}>
+                          <Paper 
+                            sx={{
+                              p: 2,
+                              borderRadius: 2,
+                              bgcolor: 'rgba(1, 24, 42, 0.5)',
+                              border: '1px solid rgba(5, 160, 181, 0.2)',
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                boxShadow: '0 8px 25px rgba(5, 160, 181, 0.15)',
+                                transform: 'translateY(-4px)'
+                              }
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5 }}>
+                              {model.type === 'enhancement' ? 
+                                <PsychologyIcon sx={{ color: '#05a0b5', fontSize: 28 }} /> : 
+                                <SecurityIcon sx={{ color: '#e16f62', fontSize: 28 }} />
+                              }
+                              <Box>
+                                <Typography variant="subtitle1" sx={{ 
+                                  fontWeight: 'bold', 
+                                  color: model.type === 'enhancement' ? '#05a0b5' : '#e16f62' 
+                                }}>
+                                  {model.name}
+                                </Typography>
+                                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
+                                  <Chip 
+                                    label={deviceTypes.find(d => d.value === model.deviceType)?.label || model.deviceType} 
+                                    size="small" 
+                                    icon={<DevicesIcon sx={{ fontSize: '16px !important' }} />}
+                                    sx={{ 
+                                      bgcolor: 'rgba(5, 160, 181, 0.1)', 
+                                      color: '#dbe9ff',
+                                      borderColor: 'transparent'
+                                    }} 
+                                  />
+                                  <Chip 
+                                    label={model.size} 
+                                    size="small" 
+                                    sx={{ 
+                                      bgcolor: 'rgba(5, 160, 181, 0.1)', 
+                                      color: '#dbe9ff',
+                                      borderColor: 'transparent'
+                                    }} 
+                                  />
+                                </Box>
+                              </Box>
+                            </Box>
+                            
+                            <Box sx={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              mt: 2
+                            }}>
+                              <Typography variant="caption" sx={{ color: '#7ecfff' }}>
+                                Installed: {new Date(model.installedAt).toLocaleDateString()}
+                              </Typography>
+                              
+                              <Tooltip title="Uninstall Model">
+                                <IconButton 
+                                  size="small"
+                                  onClick={() => handleUninstall(model.id)}
+                                  sx={{
+                                    color: '#e16f62',
+                                    transition: 'all 0.3s ease',
+                                    '&:hover': {
+                                      color: '#fff',
+                                      backgroundColor: '#e16f62',
+                                      transform: 'scale(1.1)'
+                                    }
+                                  }}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          </Paper>
+                        </Slide>
+                      ))}
+                    </List>
+                  ) : (
+                    <Fade in={true} timeout={1000}>
+                      <Paper sx={{ 
+                        p: 4, 
+                        textAlign: 'center',
+                        bgcolor: 'rgba(1, 24, 42, 0.5)',
+                        borderRadius: 3,
+                        border: '2px dashed rgba(5, 160, 181, 0.3)'
+                      }}>
+                        <DevicesIcon sx={{ 
+                          fontSize: 64, 
+                          color: 'rgba(5, 160, 181, 0.5)', 
+                          mb: 2
+                        }} />
+                        <Typography variant="h6" sx={{ color: '#05a0b5', mb: 1 }}>
+                          No Models Installed
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#dbe9ff' }}>
+                          Download models from the Available Models tab to get started
+                        </Typography>
+                      </Paper>
+                    </Fade>
+                  )}
+                </Box>
+              </Fade>
+            </TabPanel>
+
+            {/* Device Configuration Tab */}
+            <TabPanel value={selectedTab} index={2}>
+              <Fade in={selectedTab === 2} timeout={800}>
+                <Box>
+                  <Typography variant="h6" gutterBottom sx={{ 
+                    fontWeight: 'bold',
+                    color: '#05a0b5',
+                    mb: 3
+                  }}>
+                    Edge Device Configuration
+                  </Typography>
+                  
+                  <Grid container spacing={2}>
+                    {deviceTypes.map((device, index) => (
+                      <Grid item xs={12} sm={6} lg={4} key={device.value}>
+                        <Zoom in={true} timeout={1000 + index * 200}>
+                          <Paper sx={{ 
+                            p: 2.5,
+                            bgcolor: 'rgba(1, 24, 42, 0.5)',
+                            borderRadius: 2,
+                            border: '1px solid rgba(5, 160, 181, 0.2)',
+                            height: '100%',
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                              transform: 'translateY(-8px)',
+                              boxShadow: '0 15px 30px rgba(1, 24, 42, 0.4)',
+                              borderColor: '#05a0b5'
+                            }
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                              <Typography variant="h4" sx={{ mr: 2 }}>{device.icon}</Typography>
+                              <Typography variant="h6" sx={{ fontWeight: 600, color: '#05a0b5' }}>
+                                {device.label}
+                              </Typography>
+                            </Box>
+                            
+                            <Typography variant="body2" sx={{ color: '#dbe9ff', mb: 2, minHeight: 60 }}>
+                              {device.value === 'gpu_server' && 'High-performance server with dedicated GPU for maximum accuracy and real-time processing of multiple streams.'}
+                              {device.value === 'auv_rov' && 'Autonomous underwater vehicles with limited computational resources optimized for low-power operation.'}
+                              {device.value === 'jetson' && 'NVIDIA Jetson series for edge AI with GPU acceleration in compact form factor.'}
+                              {device.value === 'embedded' && 'Low-power embedded systems for real-time processing with minimal resource usage.'}
+                              {device.value === 'cpu_only' && 'CPU-only deployment for basic processing capabilities where GPU is not available.'}
+                            </Typography>
+                            
+                            <Box sx={{ 
+                              display: 'flex',
+                              justifyContent: 'space-between', 
+                              alignItems: 'flex-end'
+                            }}>
+                              <Chip 
+                                label={`${installedModels.filter(m => m.deviceType === device.value).length} Model${
+                                  installedModels.filter(m => m.deviceType === device.value).length !== 1 ? 's' : ''
+                                }`}
+                                size="small"
+                                sx={{
+                                  backgroundColor: '#05a0b5',
+                                  color: '#fff',
+                                  fontWeight: 'bold'
+                                }}
+                              />
+                              
+                              <Button 
+                                variant="text" 
+                                size="small" 
+                                startIcon={<SettingsIcon />}
+                                sx={{
+                                  color: '#7ecfff',
+                                  transition: 'all 0.3s ease',
+                                  textTransform: 'none',
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(126, 207, 255, 0.1)',
+                                    transform: 'translateY(-2px)'
+                                  }
+                                }}
+                              >
+                                Configure
+                              </Button>
+                            </Box>
+                          </Paper>
+                        </Zoom>
+                      </Grid>
+                    ))}
+                  </Grid>
+
+                  <Fade in={true} timeout={2000}>
+                    <Alert 
+                      severity="info" 
+                      icon={<InfoIcon sx={{ color: '#05a0b5' }} />}
+                      sx={{ 
+                        mt: 3,
+                        bgcolor: 'rgba(5, 160, 181, 0.1)',
+                        border: '1px solid rgba(5, 160, 181, 0.3)',
+                        color: '#fff',
+                        '& .MuiAlert-icon': {
+                          color: '#05a0b5'
+                        }
+                      }}
+                    >
+                      <Typography variant="body2">
+                        <strong>Edge Deployment:</strong> Models are automatically optimized for your selected device type.
+                        TensorRT optimization is applied for NVIDIA devices, while quantization is used for CPU-only deployments.
+                      </Typography>
+                    </Alert>
+                  </Fade>
+                </Box>
+              </Fade>
+            </TabPanel>
+          </CardContent>
+        </Card>
+      </Slide>
 
       {/* Download Confirmation Dialog */}
-      <Dialog open={downloadDialog} onClose={() => setDownloadDialog(false)}>
-        <DialogTitle>Download Model for Edge Device</DialogTitle>
+      <Dialog 
+        open={downloadDialog} 
+        onClose={() => setDownloadDialog(false)}
+        PaperProps={{
+          sx: {
+            bgcolor: '#01182a',
+            color: '#fff',
+            borderRadius: 2,
+            border: '1px solid rgba(5, 160, 181, 0.3)'
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#05a0b5', fontWeight: 600 }}>
+          Download Model for Edge Device
+        </DialogTitle>
         <DialogContent>
           {selectedModel && (
             <Box sx={{ minWidth: 300 }}>
-              <Typography variant="body1" gutterBottom>
-                <strong>{selectedModel.name}</strong>
+              <Typography variant="body1" gutterBottom sx={{ fontWeight: 600 }}>
+                {selectedModel.name}
               </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+              <Typography variant="body2" sx={{ color: '#dbe9ff', mb: 2 }}>
                 {selectedModel.description}
               </Typography>
               
@@ -581,11 +1006,23 @@ const ModelManagement = () => {
               </Box>
 
               <FormControl fullWidth sx={{ mt: 2 }}>
-                <InputLabel>Target Device Type</InputLabel>
+                <InputLabel sx={{ color: '#05a0b5' }}>Target Device Type</InputLabel>
                 <Select
                   value={deviceType}
                   onChange={(e) => setDeviceType(e.target.value)}
                   label="Target Device Type"
+                  sx={{
+                    color: '#fff',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#05a0b5'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#05a0b5'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#05a0b5'
+                    }
+                  }}
                 >
                   {deviceTypes.map((device) => (
                     <MenuItem key={device.value} value={device.value}>
@@ -598,17 +1035,54 @@ const ModelManagement = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDownloadDialog(false)}>Cancel</Button>
+          <Button 
+            onClick={() => setDownloadDialog(false)}
+            sx={{ color: '#dbe9ff' }}
+          >
+            Cancel
+          </Button>
           <Button 
             onClick={handleDownloadConfirm} 
             variant="contained"
             disabled={!deviceType}
             startIcon={<DownloadIcon />}
+            sx={{
+              backgroundColor: '#05a0b5',
+              color: '#fff',
+              fontWeight: 600,
+              '&:hover': {
+                backgroundColor: '#026773'
+              }
+            }}
           >
             Download & Install
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Global Animation Styles */}
+      <style jsx global>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+          100% { transform: scale(1); }
+        }
+        
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes textGlow {
+          0% { text-shadow: 0 0 20px #05a0b540; }
+          100% { text-shadow: 0 0 30px #05a0b580, 0 0 40px #05a0b540; }
+        }
+      `}</style>
     </Box>
   );
 };

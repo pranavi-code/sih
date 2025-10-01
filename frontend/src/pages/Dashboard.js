@@ -1,357 +1,280 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Grid,
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  LinearProgress,
-  Alert,
-  Chip,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
-} from '@mui/material';
-import {
-  Speed as SpeedIcon,
-  Security as SecurityIcon,
-  PhotoCamera as PhotoCameraIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  Timeline as TimelineIcon,
-} from '@mui/icons-material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { dashboardAPI } from '../services/api';
+import React from 'react';
+import { Box, Typography, Button, Grid, Paper } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import SecurityIcon from '@mui/icons-material/Security';
+import { TrendingUp as TrendingUpIcon } from '@mui/icons-material';
 
 const Dashboard = () => {
-  const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
+  const headingColor = "#7ecfff";
 
-  const loadDashboardData = async () => {
-    try {
-      const data = await dashboardAPI.getDashboardOverview();
-      setDashboardData(data);
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      // Load sample data for prototype
-      setDashboardData(getSampleDashboardData());
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getSampleDashboardData = () => ({
-    system_info: {
-      version: '1.0.0',
-      status: 'operational',
-      uptime: '15d 4h 23m',
-    },
-    recent_activity: {
-      last_24_hours: {
-        images_processed: 67,
-        threats_detected: 18,
-        critical_alerts: 3,
-        enhancement_requests: 52,
-      },
-    },
-    quick_stats: {
-      total_images_processed: 2543,
-      total_threats_detected: 487,
-      average_quality_improvement: '32%',
-      system_accuracy: '94.7%',
-    },
-    alerts: [
-      {
-        id: 'alert_001',
-        type: 'critical_threat',
-        message: 'Submarine detected in sector 7-Alpha',
-        timestamp: '2025-09-28T10:45:00Z',
-        status: 'active',
-      },
-      {
-        id: 'alert_002',
-        type: 'system_warning',
-        message: 'GPU utilization high (89%)',
-        timestamp: '2025-09-28T10:30:00Z',
-        status: 'acknowledged',
-      },
-    ],
-    model_status: {
-      enhancement_model: {
-        status: 'loaded',
-        version: 'GAN-v2.1',
-        accuracy: '96.2%',
-      },
-      detection_model: {
-        status: 'loaded',
-        version: 'YOLOv8-underwater',
-        accuracy: '94.7%',
-      },
-    },
-  });
-
-  // Sample chart data
-  const processingTrendData = [
-    { time: '00:00', processed: 12, threats: 3 },
-    { time: '04:00', processed: 8, threats: 1 },
-    { time: '08:00', processed: 25, threats: 7 },
-    { time: '12:00', processed: 34, threats: 12 },
-    { time: '16:00', processed: 28, threats: 9 },
-    { time: '20:00', processed: 19, threats: 4 },
+  const cardBackgrounds = [
+    '#162b4d',
+    '#1f3c70',
+    '#b84b59',
+    '#559965',
   ];
-
-  const threatDistributionData = [
-    { name: 'Submarine', count: 8, severity: 'critical' },
-    { name: 'Diver', count: 15, severity: 'high' },
-    { name: 'Drone', count: 6, severity: 'high' },
-    { name: 'Mine', count: 3, severity: 'critical' },
-    { name: 'Suspicious', count: 12, severity: 'medium' },
-  ];
-
-  if (loading) {
-    return (
-      <Box sx={{ width: '100%', mt: 2 }}>
-        <LinearProgress />
-        <Typography sx={{ mt: 2, textAlign: 'center' }}>Loading dashboard...</Typography>
-      </Box>
-    );
-  }
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <Typography variant="h4" gutterBottom sx={{ mb: 3, fontWeight: 'bold' }}>
-        Maritime Security Dashboard
-      </Typography>
+    <Box sx={{ 
+      minHeight: '100vh', 
+      color: '#FFFFFF', 
+      py: 0, 
+      px: 2, 
+      bgcolor: 'transparent',
+      overflow: 'hidden'
+    }}>
+      {/* Hero Section with Animations */}
+      <Box
+        sx={{
+          width: '100%',
+          minHeight: 320,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          mb: 8,
+          pt: 4,
+          animation: 'fadeInUp 1s ease-out',
+          '@keyframes fadeInUp': {
+            '0%': {
+              opacity: 0,
+              transform: 'translateY(30px)'
+            },
+            '100%': {
+              opacity: 1,
+              transform: 'translateY(0)'
+            }
+          }
+        }}
+      >
+        <Typography
+          variant="h3"
+          align="center"
+          sx={{
+            fontWeight: 800,
+            color: headingColor,
+            mb: 2,
+            letterSpacing: 1.5,
+            fontSize: { xs: 28, sm: 38, md: 44 },
+            animation: 'glow 2s ease-in-out infinite alternate',
+            '@keyframes glow': {
+              '0%': { textShadow: '0 0 20px #7ecfff40' },
+              '100%': { textShadow: '0 0 30px #7ecfff80, 0 0 40px #7ecfff40' }
+            }
+          }}
+        >
+          🌊 Maritime Security Platform
+        </Typography>
+        <Typography
+          align="center"
+          sx={{
+            color: '#dbe9ff',
+            mb: 4,
+            maxWidth: 600,
+            fontSize: 18,
+            animation: 'fadeIn 1.5s ease-out 0.3s both'
+          }}
+        >
+          A unified platform for real-time image enhancement, threat detection, and actionable maritime safety insights. Designed to keep oceans safer and operations smarter.
+        </Typography>
+        <Button
+          size="large"
+          variant="contained"
+          sx={{
+            background: "linear-gradient(45deg, #6bbcff 30%, #3f78c7 100%)",
+            color: "#fff",
+            px: 4,
+            py: 1.5,
+            fontWeight: 700,
+            fontSize: 18,
+            boxShadow: '0 8px 32px rgba(107, 188, 255, 0.3)',
+            borderRadius: 2,
+            mb: 1,
+            animation: 'pulse 2s infinite, slideInFromBottom 1s ease-out 0.6s both',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              background: "linear-gradient(45deg, #3f78c7 30%, #6bbcff 100%)",
+              transform: 'translateY(-2px)',
+              boxShadow: '0 12px 40px rgba(107, 188, 255, 0.4)'
+            },
+            '@keyframes pulse': {
+              '0%': { transform: 'scale(1)' },
+              '50%': { transform: 'scale(1.05)' },
+              '100%': { transform: 'scale(1)' }
+            },
+            '@keyframes slideInFromBottom': {
+              '0%': {
+                opacity: 0,
+                transform: 'translateY(50px)'
+              },
+              '100%': {
+                opacity: 1,
+                transform: 'translateY(0)'
+              }
+            }
+          }}
+          onClick={() => navigate('/processing')}
+        >
+          START UNIFIED PROCESS ⚡
+        </Button>
+      </Box>
 
-      {/* System Status Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', background: 'linear-gradient(135deg, #0277bd, #58a5f0)' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <PhotoCameraIcon sx={{ fontSize: 40, color: 'white', mr: 2 }} />
-                <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
-                  Images Processed
-                </Typography>
-              </Box>
-              <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold' }}>
-                {dashboardData?.recent_activity?.last_24_hours?.images_processed || 0}
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                Last 24 hours
-              </Typography>
-            </CardContent>
-          </Card>
+      {/* Steps Section with Staggered Animations */}
+      <Box sx={{ width: '100%' }}>
+        <Typography
+          variant="h5"
+          align="center"
+          sx={{ 
+            fontWeight: 700, 
+            color: headingColor, 
+            mb: 5, 
+            letterSpacing: 1,
+            animation: 'fadeInScale 1s ease-out 0.8s both',
+            '@keyframes fadeInScale': {
+              '0%': {
+                opacity: 0,
+                transform: 'scale(0.9)'
+              },
+              '100%': {
+                opacity: 1,
+                transform: 'scale(1)'
+              }
+            }
+          }}
+        >
+          How Our Website Works
+        </Typography>
+        <Grid container spacing={4} justifyContent="center">
+          {['Upload Data', 'AI Enhancement', 'Threat Detection', 'Actionable Insights'].map((title, index) => {
+            let icon = null;
+            let description = '';
+
+            switch (index) {
+              case 0:
+                icon = <CloudUploadIcon sx={{ fontSize: 48, color: '#fff', mb: 2, animation: 'bounce 2s infinite' }} />;
+                description = 'Start by uploading maritime surveillance images or video footage directly to the platform.';
+                break;
+              case 1:
+                icon = <VisibilityIcon sx={{ fontSize: 48, color: '#fff', mb: 2, animation: 'rotate 3s linear infinite' }} />;
+                description = 'Our AI models improve visibility by enhancing clarity and quality of underwater or low-light visuals.';
+                break;
+              case 2:
+                icon = <SecurityIcon sx={{ fontSize: 48, color: '#fff', mb: 2, animation: 'shake 1.5s ease-in-out infinite' }} />;
+                description = 'Advanced detection models identify submarines, mines, drones, and other threats in real time.';
+                break;
+              case 3:
+                icon = <TrendingUpIcon sx={{ fontSize: 48, color: '#fff', mb: 2, animation: 'float 3s ease-in-out infinite' }} />;
+                description = 'Get real-time insights and alerts to respond quickly and maintain maritime security.';
+                break;
+              default:
+                break;
+            }
+
+            return (
+              <Grid item xs={12} sm={6} md={3} key={title}>
+                <Paper
+                  elevation={12}
+                  sx={{
+                    p: 3,
+                    textAlign: 'center',
+                    backgroundColor: cardBackgrounds[index],
+                    borderRadius: 3,
+                    color: '#fff',
+                    minHeight: 200,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    animation: `cardSlideIn 0.8s ease-out ${0.2 * index}s both`,
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      transform: 'translateY(-8px) scale(1.02)',
+                      boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                      '&::before': {
+                        opacity: 1
+                      }
+                    },
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: 'linear-gradient(45deg, rgba(126,207,255,0.1) 0%, rgba(63,120,199,0.1) 100%)',
+                      opacity: 0,
+                      transition: 'opacity 0.3s ease'
+                    },
+                    '@keyframes cardSlideIn': {
+                      '0%': {
+                        opacity: 0,
+                        transform: 'translateX(-50px) rotateY(-10deg)'
+                      },
+                      '100%': {
+                        opacity: 1,
+                        transform: 'translateX(0) rotateY(0deg)'
+                      }
+                    },
+                    '@keyframes bounce': {
+                      '0%, 20%, 50%, 80%, 100%': { transform: 'translateY(0)' },
+                      '40%': { transform: 'translateY(-10px)' },
+                      '60%': { transform: 'translateY(-5px)' }
+                    },
+                    '@keyframes rotate': {
+                      '0%': { transform: 'rotate(0deg)' },
+                      '100%': { transform: 'rotate(360deg)' }
+                    },
+                    '@keyframes shake': {
+                      '0%, 100%': { transform: 'translateX(0)' },
+                      '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-2px)' },
+                      '20%, 40%, 60%, 80%': { transform: 'translateX(2px)' }
+                    },
+                    '@keyframes float': {
+                      '0%, 100%': { transform: 'translateY(0px)' },
+                      '50%': { transform: 'translateY(-10px)' }
+                    }
+                  }}
+                >
+                  {icon}
+                  <Typography sx={{ 
+                    fontWeight: 700, 
+                    mb: 1,
+                    position: 'relative',
+                    zIndex: 1
+                  }}>
+                    {`${index + 1}. ${title}`}
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      position: 'relative',
+                      zIndex: 1,
+                      lineHeight: 1.6
+                    }}
+                  >
+                    {description}
+                  </Typography>
+                </Paper>
+              </Grid>
+            );
+          })}
         </Grid>
+      </Box>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', background: 'linear-gradient(135deg, #d32f2f, #f57c00)' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <SecurityIcon sx={{ fontSize: 40, color: 'white', mr: 2 }} />
-                <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
-                  Threats Detected
-                </Typography>
-              </Box>
-              <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold' }}>
-                {dashboardData?.recent_activity?.last_24_hours?.threats_detected || 0}
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                Last 24 hours
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', background: 'linear-gradient(135deg, #2e7d32, #66bb6a)' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <SpeedIcon sx={{ fontSize: 40, color: 'white', mr: 2 }} />
-                <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
-                  System Accuracy
-                </Typography>
-              </Box>
-              <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold' }}>
-                {dashboardData?.quick_stats?.system_accuracy || '0%'}
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                Overall performance
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', background: 'linear-gradient(135deg, #7b1fa2, #ba68c8)' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <TimelineIcon sx={{ fontSize: 40, color: 'white', mr: 2 }} />
-                <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
-                  Quality Improvement
-                </Typography>
-              </Box>
-              <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold' }}>
-                {dashboardData?.quick_stats?.average_quality_improvement || '0%'}
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                Average enhancement
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* Charts and Alerts */}
-      <Grid container spacing={3}>
-        {/* Processing Trends Chart */}
-        <Grid item xs={12} md={8}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                Processing Activity (Last 24 Hours)
-              </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={processingTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line 
-                    type="monotone" 
-                    dataKey="processed" 
-                    stroke="#0277bd" 
-                    strokeWidth={3}
-                    name="Images Processed"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="threats" 
-                    stroke="#d32f2f" 
-                    strokeWidth={3}
-                    name="Threats Detected"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Active Alerts */}
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                Active Alerts
-              </Typography>
-              <List>
-                {dashboardData?.alerts?.map((alert, index) => (
-                  <React.Fragment key={alert.id}>
-                    <ListItem>
-                      <ListItemIcon>
-                        {alert.type === 'critical_threat' ? (
-                          <ErrorIcon color="error" />
-                        ) : (
-                          <WarningIcon color="warning" />
-                        )}
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={alert.message}
-                        secondary={new Date(alert.timestamp).toLocaleString()}
-                      />
-                    </ListItem>
-                    {index < dashboardData.alerts.length - 1 && <Divider />}
-                  </React.Fragment>
-                ))}
-              </List>
-              {(!dashboardData?.alerts || dashboardData.alerts.length === 0) && (
-                <Box sx={{ textAlign: 'center', py: 2 }}>
-                  <CheckCircleIcon color="success" sx={{ fontSize: 48, mb: 1 }} />
-                  <Typography color="text.secondary">No active alerts</Typography>
-                </Box>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Threat Distribution Chart */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                Threat Distribution
-              </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={threatDistributionData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#0277bd" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Model Status */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                AI Model Status
-              </Typography>
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="body1">Enhancement Model</Typography>
-                  <Chip 
-                    label={dashboardData?.model_status?.enhancement_model?.status || 'unknown'} 
-                    color="success" 
-                    size="small" 
-                  />
-                </Box>
-                <Typography variant="body2" color="text.secondary">
-                  Version: {dashboardData?.model_status?.enhancement_model?.version || 'N/A'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Accuracy: {dashboardData?.model_status?.enhancement_model?.accuracy || 'N/A'}
-                </Typography>
-              </Box>
-              
-              <Divider sx={{ my: 2 }} />
-              
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="body1">Detection Model</Typography>
-                  <Chip 
-                    label={dashboardData?.model_status?.detection_model?.status || 'unknown'} 
-                    color="success" 
-                    size="small" 
-                  />
-                </Box>
-                <Typography variant="body2" color="text.secondary">
-                  Version: {dashboardData?.model_status?.detection_model?.version || 'N/A'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Accuracy: {dashboardData?.model_status?.detection_model?.accuracy || 'N/A'}
-                </Typography>
-              </Box>
-
-              <Alert severity="info" sx={{ mt: 2 }}>
-                System Status: {dashboardData?.system_info?.status || 'Unknown'} • 
-                Uptime: {dashboardData?.system_info?.uptime || 'N/A'}
-              </Alert>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      {/* Add global CSS animations */}
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
     </Box>
   );
 };

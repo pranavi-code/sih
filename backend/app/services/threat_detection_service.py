@@ -10,6 +10,8 @@ import logging
 from typing import Dict, List, Optional, Tuple
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +19,14 @@ class ThreatDetectionService:
     """Service for detecting maritime threats using YOLO v11"""
     
     def __init__(self):
-        self.model = None
+        # Load YOLO model - make sure to use correct path
+        model_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "yolov8n.pt")
+        self.model = YOLO(model_path)
+        
+        # Ensure detection output directory exists
+        self.detection_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "detected")
+        os.makedirs(self.detection_dir, exist_ok=True)
+        
         self.is_loaded = False
         self.executor = ThreadPoolExecutor(max_workers=2)
         
@@ -68,9 +77,90 @@ class ThreatDetectionService:
             # Continue without detection for development
             self.is_loaded = True
     
-    async def detect_threats(self, image_path: str, confidence_threshold: float = 0.5) -> Dict:
+    async def detect_threats(self, image_path, confidence=0.5, nms_threshold=0.4, max_detections=20):
         """
-        Detect threats in underwater image
+        Detect threats in an image using YOLO model
+        
+        Args:
+            image_path: Path to input image
+            confidence: Minimum confidence for detections
+            nms_threshold: Non-maximum suppression threshold
+            max_detections: Maximum number of detections to return
+            
+        Returns:
+            Dictionary with detection results
+        """
+        try:
+            # Check if file exists
+            if not os.path.exists(image_path):
+                return {
+                    "success": False, 
+                    "error": f"Image not found: {image_path}"
+                }
+            
+            # Run YOLO detection
+            results = self.model.predict(
+                source=image_path,
+                conf=confidence,
+                iou=nms_threshold,
+                max_det=max_detections
+            )
+            
+            # Process results
+            result = results[0]
+            detections = []
+            
+            # Create output filename
+            file_name = os.path.basename(image_path)
+            detected_path = os.path.join(self.detection_dir, f"{file_name}_detected.png")
+            
+            # Visualize results on the image
+            img = cv2.imread(image_path)
+            if img is None:
+                return {"success": False, "error": "Failed to read image"}
+                
+            # Draw bounding boxes and get detection data
+            for box in result.boxes:
+                x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+                conf = float(box.conf[0])
+                cls_id = int(box.cls[0])
+                cls_name = result.names[cls_id]
+                
+                # Draw rectangle on image
+                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                
+                # Add label
+                label = f"{cls_name}: {conf:.2f}"
+                cv2.putText(img, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                
+                # Add to detections list
+                detections.append({
+                    "class": cls_name,
+                    "confidence": conf,
+                    "bbox": [x1, y1, x2, y2]
+                })
+            
+            # Save detected image
+            cv2.imwrite(detected_path, img)
+            
+            return {
+                "success": True,
+                "detected_image_path": detected_path,
+                "detections": detections,
+                "total_detections": len(detections)
+            }
+            
+        except Exception as e:
+            import traceback
+            return {
+                "success": False,
+                "error": str(e),
+                "traceback": traceback.format_exc()
+            }
+    
+    async def detect_threats_old(self, image_path: str, confidence_threshold: float = 0.5) -> Dict:
+        """
+        Detect threats in underwater image (old method)
         
         Args:
             image_path: Path to input image

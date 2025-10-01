@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="60" cy="60" r="50" fill="url(#gradient)" />
+  <path d="M60 30C73.8071 30 85 41.1929 85 55C85 68.8071 73.8071 80 60 80C46.1929 80 35 68.8071 35 55C35 41.1929 46.1929 30 60 30Z" stroke="#68c3d4" stroke-width="4" fill="rgba(5, 160, 181, 0.2)" />
+  <path d="M60 40C68.2843 40 75 46.7157 75 55C75 63.2843 68.2843 70 60 70C51.7157 70 45 63.2843 45 55C45 46.7157 51.7157 40 60 40Z" stroke="#68c3d4" stroke-width="3" fill="rgba(5, 160, 181, 0.3)" />
+  <path d="M75 55C75 46.7157 68.2843 40 60 40V70C68.2843 70 75 63.2843 75 55Z" fill="rgba(5, 160, 181, 0.5)" />
+  <defs>
+    <linearGradient id="gradient" x1="20" y1="20" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#01182a" />
+      <stop offset="1" stop-color="#026773" />
+    </linearGradient>
+  </defs>
+</svg>

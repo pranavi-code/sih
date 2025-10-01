@@ -1,511 +1,410 @@
-import React, { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
+import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  Button,
-  Grid,
-  LinearProgress,
-  Alert,
-  Paper,
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Badge,
+  Box, Typography, Paper, Button, Grid, CircularProgress, Alert,
+  Slider, FormControlLabel, Switch, Divider, Card, CardMedia,
+  TextField, List, ListItem, ListItemText, Chip, Stack
 } from '@mui/material';
 import {
   CloudUpload as CloudUploadIcon,
-  Security as SecurityIcon,
-  Download as DownloadIcon,
+  Search as SearchIcon,
   Warning as WarningIcon,
-  Error as ErrorIcon,
-  CheckCircle as CheckCircleIcon,
-  Visibility as VisibilityIcon,
+  DeleteOutline as DeleteIcon
 } from '@mui/icons-material';
-import { detectionAPI, utils } from '../services/api';
+import { styled } from '@mui/material/styles';
+import api from '../services/api';
+
+// Styled components
+const DropzoneArea = styled(Paper)(({ theme, isDragActive }) => ({
+  border: `2px dashed ${isDragActive ? theme.palette.primary.main : 'rgba(5, 160, 181, 0.3)'}`,
+  borderRadius: theme.shape.borderRadius,
+  padding: theme.spacing(3),
+  textAlign: 'center',
+  backgroundColor: isDragActive ? 'rgba(5, 160, 181, 0.05)' : 'rgba(1, 24, 42, 0.3)',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'center',
+  minHeight: 200,
+}));
+
+const VisuallyHiddenInput = styled('input')({
+  clip: 'rect(0 0 0 0)',
+  clipPath: 'inset(50%)',
+  height: 1,
+  overflow: 'hidden',
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  whiteSpace: 'nowrap',
+  width: 1,
+});
 
 const ThreatDetection = () => {
+  // State for file upload
   const [selectedFile, setSelectedFile] = useState(null);
-  const [processing, setProcessing] = useState(false);
-  const [results, setResults] = useState(null);
+  const [isDragActive, setIsDragActive] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
-  const [originalImageUrl, setOriginalImageUrl] = useState(null);
-  const [detectedImageUrl, setDetectedImageUrl] = useState(null);
+  const [detectionResult, setDetectionResult] = useState(null);
+  
+  // Detection settings
   const [confidenceThreshold, setConfidenceThreshold] = useState(0.5);
-
-  const onDrop = useCallback((acceptedFiles) => {
-    const file = acceptedFiles[0];
-    if (file) {
+  const [nmsThreshold, setNmsThreshold] = useState(0.4);
+  const [maxDetections, setMaxDetections] = useState(20);
+  const [useEnhanced, setUseEnhanced] = useState(true);
+  
+  // Handle file selection
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.match('image.*')) {
       setSelectedFile(file);
-      setResults(null);
       setError(null);
-      
-      // Create preview URL for original image
-      const url = URL.createObjectURL(file);
-      setOriginalImageUrl(url);
-      
-      // Clean up detected image URL
-      if (detectedImageUrl) {
-        URL.revokeObjectURL(detectedImageUrl);
-        setDetectedImageUrl(null);
-      }
+      setDetectionResult(null);
+    } else {
+      setError('Please select a valid image file.');
     }
-  }, [detectedImageUrl]);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.bmp', '.tiff']
-    },
-    multiple: false,
-    maxSize: 10 * 1024 * 1024, // 10MB
-  });
-
-  const handleDetectThreats = async () => {
-    if (!selectedFile) return;
-
-    setProcessing(true);
+  };
+  
+  // Handle drag and drop events
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragActive(true);
+  };
+  
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragActive(false);
+  };
+  
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragActive(false);
+    
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.match('image.*')) {
+      setSelectedFile(file);
+      setError(null);
+      setDetectionResult(null);
+    } else {
+      setError('Please select a valid image file.');
+    }
+  };
+  
+  // Handle detect button click
+  const handleDetectClick = async () => {
+    if (!selectedFile) {
+      setError('Please select an image first.');
+      return;
+    }
+    
+    setIsProcessing(true);
     setError(null);
-
+    
     try {
-      const result = await detectionAPI.processDetection(selectedFile, confidenceThreshold, true);
-      setResults(result);
-
-      // Get detected image with annotations
-      if (result.annotated_image) {
-        const filename = result.annotated_image.replace(/\\/g, '/').split('/').pop();
-        const blob = await detectionAPI.getDetectedImage(filename);
-        if (blob) {
-          const url = utils.createImageUrl(blob);
-          setDetectedImageUrl(url);
-        }
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+      formData.append('confidence', confidenceThreshold);
+      formData.append('nms_threshold', nmsThreshold);
+      formData.append('max_detections', maxDetections);
+      formData.append('use_enhanced', useEnhanced);
+      
+      const response = await api.post('/detection/detect', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      if (response.data.success) {
+        setDetectionResult(response.data);
+      } else {
+        setError(response.data.error || 'Failed to process image');
       }
     } catch (err) {
-      setError(err.message || 'Detection failed');
+      setError(err.response?.data?.error || err.message || 'An error occurred during processing');
       console.error('Detection error:', err);
     } finally {
-      setProcessing(false);
+      setIsProcessing(false);
     }
   };
-
-  const getSeverityColor = (severity) => {
-    return utils.getSeverityColor(severity);
+  
+  // Get class color based on threat level
+  const getThreatColor = (className) => {
+    const threatLevels = {
+      'person': '#ff5252',
+      'diver': '#ff5252',
+      'submarine': '#ff4081',
+      'mine': '#f44336',
+      'fish': '#4caf50',
+      'turtle': '#4caf50',
+      'debris': '#ff9800',
+    };
+    
+    return threatLevels[className.toLowerCase()] || '#2196f3';
   };
-
-  const getSeverityIcon = (severity) => {
-    switch (severity) {
-      case 'critical': return <ErrorIcon sx={{ color: '#d32f2f' }} />;
-      case 'high': return <WarningIcon sx={{ color: '#f57c00' }} />;
-      case 'medium': return <WarningIcon sx={{ color: '#fbc02d' }} />;
-      case 'low': return <CheckCircleIcon sx={{ color: '#388e3c' }} />;
-      default: return <CheckCircleIcon sx={{ color: '#9e9e9e' }} />;
-    }
+  
+  // Clear selected file
+  const handleClearFile = () => {
+    setSelectedFile(null);
+    setDetectionResult(null);
   };
-
+  
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <Typography variant="h4" gutterBottom sx={{ mb: 3, fontWeight: 'bold' }}>
-        Maritime Threat Detection
+    <Box sx={{ py: 3 }}>
+      <Typography
+        variant="h3"
+        align="center"
+        sx={{
+          fontWeight: 700,
+          color: "#7ecfff",
+          mb: 2,
+          letterSpacing: 0.5,
+          fontSize: { xs: 28, sm: 36, md: 42 },
+        }}
+      >
+        Underwater Threat Detection
       </Typography>
-
+      
+      <Typography
+        variant="subtitle1"
+        align="center"
+        sx={{
+          mb: 4,
+          color: "text.secondary",
+          maxWidth: 800,
+          mx: 'auto'
+        }}
+      >
+        Identify potential threats and objects of interest in underwater imagery using state-of-the-art detection models
+      </Typography>
+      
       <Grid container spacing={3}>
-        {/* Upload Section */}
+        {/* Left side - Upload and settings */}
         <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                Upload Image for Analysis
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, color: '#05a0b5' }}>
+              <SearchIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
+              Upload Image for Analysis
+            </Typography>
+            
+            <DropzoneArea
+              isDragActive={isDragActive}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById('file-upload').click()}
+            >
+              <CloudUploadIcon sx={{ fontSize: 48, color: '#05a0b5', mb: 2, opacity: 0.8 }} />
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                Drag & drop underwater image
               </Typography>
-              
-              <Paper
-                {...getRootProps()}
-                sx={{
-                  p: 4,
-                  textAlign: 'center',
-                  border: '2px dashed',
-                  borderColor: isDragActive ? 'primary.main' : 'grey.300',
-                  backgroundColor: isDragActive ? 'action.hover' : 'background.paper',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    borderColor: 'primary.main',
-                    backgroundColor: 'action.hover',
-                  },
-                }}
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                or click to select from your computer
+              </Typography>
+              <Button
+                component="label"
+                variant="contained"
+                sx={{ mb: 2 }}
               >
-                <input {...getInputProps()} />
-                <CloudUploadIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
-                <Typography variant="h6" gutterBottom>
-                  {isDragActive ? 'Drop the image here' : 'Drag & drop an underwater image'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  or click to select from your computer
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Supported formats: JPEG, PNG, BMP, TIFF (max 10MB)
-                </Typography>
-              </Paper>
-
-              {selectedFile && (
-                <Box sx={{ mt: 2 }}>
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    <strong>Selected:</strong> {selectedFile.name} ({utils.formatFileSize(selectedFile.size)})
-                  </Alert>
-                  
-                  <Button
-                    variant="contained"
-                    onClick={handleDetectThreats}
-                    disabled={processing}
-                    startIcon={<SecurityIcon />}
-                    fullWidth
-                    sx={{ mb: 2 }}
-                  >
-                    {processing ? 'Analyzing...' : 'Detect Threats'}
-                  </Button>
-
-                  {processing && (
-                    <Box sx={{ mt: 2 }}>
-                      <LinearProgress />
-                      <Typography variant="body2" sx={{ mt: 1, textAlign: 'center' }}>
-                        Scanning for maritime threats with YOLO v11...
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-              )}
-
-              {error && (
-                <Alert severity="error" sx={{ mt: 2 }}>
-                  {error}
-                </Alert>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Results Section */}
-        <Grid item xs={12} md={6}>
-          {results && (
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 1 }}>
-                  Detection Results
-                </Typography>
-
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-                  <Paper variant="outlined" sx={{ p: 2, minWidth: 200, flex: '1 1 220px' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                      <SecurityIcon sx={{ color: results.total_detections > 0 ? '#d32f2f' : '#4caf50' }} />
-                      <Typography sx={{ fontWeight: 'bold' }}>Overview</Typography>
-                    </Box>
-                    <Chip 
-                      label={`${results.total_detections || 0} Threats`} 
-                      color={results.total_detections > 0 ? 'error' : 'success'}
-                      size="small"
-                      sx={{ mr: 1, mb: 1 }} 
-                    />
-                    <Chip 
-                      label={`Conf ≥ ${(confidenceThreshold * 100).toFixed(0)}%`} 
-                      size="small" 
-                      variant="outlined"
-                    />
-                  </Paper>
-
-                  {results.threat_summary && (
-                    <Paper variant="outlined" sx={{ p: 2, minWidth: 240, flex: '1 1 260px' }}>
-                      <Typography sx={{ fontWeight: 'bold', mb: 1 }}>Severity Breakdown</Typography>
-                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                        <Chip label={`Critical ${results.threat_summary.critical_threats || 0}`} size="small" sx={{ backgroundColor: '#ffebee', color: '#d32f2f' }} />
-                        <Chip label={`High ${results.threat_summary.high_threats || 0}`} size="small" sx={{ backgroundColor: '#fff3e0', color: '#f57c00' }} />
-                        <Chip label={`Medium ${results.threat_summary.medium_threats || 0}`} size="small" sx={{ backgroundColor: '#fffde7', color: '#fbc02d' }} />
-                      </Box>
-                    </Paper>
-                  )}
-
-                  {results.threat_summary?.threat_types && (
-                    <Paper variant="outlined" sx={{ p: 2, minWidth: 240, flex: '1 1 260px' }}>
-                      <Typography sx={{ fontWeight: 'bold', mb: 1 }}>Threat Types</Typography>
-                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                        {Object.entries(results.threat_summary.threat_types).map(([type, count]) => (
-                          <Chip key={type} label={`${type.replace('_',' ')} ${count}`} size="small" />
-                        ))}
-                      </Box>
-                    </Paper>
-                  )}
-                </Box>
-
-                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 1 }}>
-                  <Button
-                    variant="contained"
-                    startIcon={<DownloadIcon />}
-                    onClick={() => {
-                      const payload = {
-                        metadata: { created_at: new Date().toISOString(), filename: selectedFile?.name || 'image' },
-                        total_detections: results.total_detections || 0,
-                        threat_summary: results.threat_summary || {},
-                        detections: results.detections || [],
-                      };
-                      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `${(selectedFile?.name || 'results').replace(/\.[^.]+$/, '')}_detection.json`;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                    }}
-                  >
-                    Download Report
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<DownloadIcon />}
-                    disabled={!results?.annotated_image}
-                    onClick={async () => {
-                      const filename = (results?.annotated_image || '').replace(/\\/g, '/').split('/').pop();
-                      if (!filename) return;
-                      const blob = await detectionAPI.getDetectedImage(filename);
-                      const url = utils.createImageUrl(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = filename;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                    }}
-                  >
-                    Download Annotated Image
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
+                Select File
+                <VisuallyHiddenInput
+                  id="file-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                />
+              </Button>
+              <Typography variant="caption" color="textSecondary">
+                Supported: JPEG, PNG, BMP, TIFF (max 10MB)
+              </Typography>
+            </DropzoneArea>
+          </Box>
+          
+          {selectedFile && (
+            <Box sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
+              <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                Selected: {selectedFile.name} ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
+              </Typography>
+              <Button 
+                size="small" 
+                startIcon={<DeleteIcon />}
+                onClick={handleClearFile}
+                color="error"
+                variant="outlined"
+              >
+                Clear
+              </Button>
+            </Box>
           )}
+          
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          )}
+          
+          <Paper sx={{ p: 3, mb: 3, backgroundColor: 'rgba(1, 24, 42, 0.3)' }}>
+            <Typography variant="h6" sx={{ mb: 2, color: '#05a0b5' }}>
+              Detection Settings
+            </Typography>
+            
+            <Typography gutterBottom>
+              Confidence Threshold: {confidenceThreshold}
+            </Typography>
+            <Slider
+              value={confidenceThreshold}
+              onChange={(e, newValue) => setConfidenceThreshold(newValue)}
+              min={0.1}
+              max={1.0}
+              step={0.05}
+              sx={{ mb: 3 }}
+            />
+            
+            <Typography gutterBottom>
+              NMS Threshold: {nmsThreshold}
+            </Typography>
+            <Slider
+              value={nmsThreshold}
+              onChange={(e, newValue) => setNmsThreshold(newValue)}
+              min={0.1}
+              max={1.0}
+              step={0.05}
+              sx={{ mb: 3 }}
+            />
+            
+            <Typography gutterBottom>
+              Maximum Detections
+            </Typography>
+            <TextField
+              value={maxDetections}
+              onChange={(e) => setMaxDetections(parseInt(e.target.value) || 20)}
+              type="number"
+              InputProps={{ inputProps: { min: 1, max: 100 } }}
+              size="small"
+              fullWidth
+              sx={{ mb: 3 }}
+            />
+            
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={useEnhanced}
+                  onChange={(e) => setUseEnhanced(e.target.checked)}
+                />
+              }
+              label="Use enhanced image if available"
+              sx={{ mb: 1 }}
+            />
+          </Paper>
+          
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<SearchIcon />}
+            onClick={handleDetectClick}
+            disabled={!selectedFile || isProcessing}
+            fullWidth
+            sx={{ py: 1.5 }}
+          >
+            {isProcessing ? (
+              <>
+                <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
+                Processing...
+              </>
+            ) : (
+              "Detect Threats"
+            )}
+          </Button>
         </Grid>
-
-        {/* Detailed Detection Results */}
-        {results && results.detections && results.detections.length > 0 && (
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                  Detected Threats
+        
+        {/* Right side - Results */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%', backgroundColor: 'rgba(1, 24, 42, 0.3)' }}>
+            <Typography variant="h6" sx={{ mb: 2, color: '#05a0b5' }}>
+              Detection Results
+            </Typography>
+            
+            {!detectionResult && !isProcessing && (
+              <Box sx={{ textAlign: 'center', py: 8, color: 'text.secondary' }}>
+                <WarningIcon sx={{ fontSize: 48, opacity: 0.6, mb: 2 }} />
+                <Typography>
+                  No detection results yet. Upload an image and click "Detect Threats".
+                </Typography>
+              </Box>
+            )}
+            
+            {isProcessing && (
+              <Box sx={{ textAlign: 'center', py: 8 }}>
+                <CircularProgress size={48} sx={{ mb: 3 }} />
+                <Typography>
+                  Analyzing image for potential threats...
+                </Typography>
+              </Box>
+            )}
+            
+            {detectionResult && (
+              <>
+                <Card sx={{ mb: 3, backgroundColor: 'transparent' }}>
+                  <CardMedia
+                    component="img"
+                    image={`${api.defaults.baseURL}/detection/image/${detectionResult.detected_image_path.split('/').pop()}`}
+                    alt="Detection Results"
+                    sx={{ width: '100%', maxHeight: '500px', objectFit: 'contain' }}
+                  />
+                </Card>
+                
+                <Divider sx={{ mb: 2 }} />
+                
+                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold' }}>
+                  {detectionResult.total_detections} Object{detectionResult.total_detections !== 1 ? 's' : ''} Detected
                 </Typography>
                 
-                <TableContainer component={Paper} variant="outlined">
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell><strong>Threat Type</strong></TableCell>
-                        <TableCell><strong>Confidence</strong></TableCell>
-                        <TableCell><strong>Severity</strong></TableCell>
-                        <TableCell><strong>Location</strong></TableCell>
-                        <TableCell><strong>Size</strong></TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {results.detections.map((detection, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              {getSeverityIcon(detection.severity)}
-                              <Typography sx={{ ml: 1, fontWeight: 'bold' }}>
-                                {detection.threat_type.replace('_', ' ').toUpperCase()}
+                {detectionResult.total_detections > 0 ? (
+                  <List sx={{ maxHeight: 300, overflow: 'auto' }}>
+                    {detectionResult.detections.map((detection, index) => (
+                      <ListItem key={index} divider={index < detectionResult.detections.length - 1}>
+                        <ListItemText
+                          primary={
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography variant="body1">
+                                {detection.class}
                               </Typography>
+                              <Chip 
+                                label={`${(detection.confidence * 100).toFixed(1)}%`}
+                                size="small"
+                                sx={{ 
+                                  backgroundColor: getThreatColor(detection.class),
+                                  color: 'white'
+                                }} 
+                              />
                             </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Typography sx={{ fontWeight: 'bold' }}>
-                              {(detection.confidence * 100).toFixed(1)}%
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Chip 
-                              label={detection.severity.toUpperCase()}
-                              size="small"
-                              sx={{ 
-                                backgroundColor: getSeverityColor(detection.severity),
-                                color: 'white',
-                                fontWeight: 'bold'
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              ({Math.round(detection.bbox.x1)}, {Math.round(detection.bbox.y1)}) 
-                              - ({Math.round(detection.bbox.x2)}, {Math.round(detection.bbox.y2)})
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              {Math.round(detection.area)} px²
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>
-            </Card>
-          </Grid>
-        )}
-
-        {/* Image Comparison */}
-        {originalImageUrl && (
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-                  <VisibilityIcon sx={{ mr: 1 }} />
-                  Detection Results Visualization
-                </Typography>
-
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <Paper variant="outlined" sx={{ p: 2 }}>
-                      <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-                        Original Image
-                      </Typography>
-                      <Box
-                        component="img"
-                        src={originalImageUrl}
-                        alt="Original"
-                        sx={{
-                          width: '100%',
-                          height: 'auto',
-                          maxHeight: 400,
-                          objectFit: 'contain',
-                          borderRadius: 1,
-                        }}
-                      />
-                    </Paper>
-                  </Grid>
-                  
-                  <Grid item xs={12} md={6}>
-                    <Paper variant="outlined" sx={{ p: 2 }}>
-                      <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-                        Detected Threats (Annotated)
-                      </Typography>
-                      {detectedImageUrl ? (
-                        <Box
-                          component="img"
-                          src={detectedImageUrl}
-                          alt="Detected"
-                          sx={{
-                            width: '100%',
-                            height: 'auto',
-                            maxHeight: 400,
-                            objectFit: 'contain',
-                            borderRadius: 1,
-                          }}
+                          }
+                          secondary={`Bounding box: [${detection.bbox.join(', ')}]`}
                         />
-                      ) : (
-                        <Box
-                          sx={{
-                            width: '100%',
-                            height: 400,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            backgroundColor: 'grey.100',
-                            borderRadius: 1,
-                          }}
-                        >
-                          <Typography color="text.secondary">
-                            {processing ? 'Analyzing...' : 'Detection results will appear here'}
-                          </Typography>
-                        </Box>
-                      )}
-                    </Paper>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-        )}
-
-        {/* Threat Information */}
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                Detectable Maritime Threats
-              </Typography>
-              
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <List dense>
-                    <ListItem>
-                      <ListItemIcon>
-                        <ErrorIcon sx={{ color: '#d32f2f' }} />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary="Submarines" 
-                        secondary="Critical threat - Military underwater vessels with distinctive hull shapes and periscopes"
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <ErrorIcon sx={{ color: '#d32f2f' }} />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary="Naval Mines" 
-                        secondary="Critical threat - Explosive devices with spherical shapes and spike attachments"
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <WarningIcon sx={{ color: '#f57c00' }} />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary="Divers/Swimmers" 
-                        secondary="High threat - Human figures with diving equipment and fins"
-                      />
-                    </ListItem>
+                      </ListItem>
+                    ))}
                   </List>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <List dense>
-                    <ListItem>
-                      <ListItemIcon>
-                        <WarningIcon sx={{ color: '#f57c00' }} />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary="Underwater Drones" 
-                        secondary="High threat - Unmanned vehicles with propellers and camera equipment"
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <WarningIcon sx={{ color: '#fbc02d' }} />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary="Suspicious Objects" 
-                        secondary="Medium threat - Unidentified artificial objects or foreign materials"
-                      />
-                    </ListItem>
-                  </List>
-                </Grid>
-              </Grid>
-
-              <Alert severity="info" sx={{ mt: 2 }}>
-                <strong>Detection Accuracy:</strong> This system uses YOLO v11 trained on underwater imagery 
-                with 94.7% accuracy for maritime threat detection.
-              </Alert>
-            </CardContent>
-          </Card>
+                ) : (
+                  <Alert severity="info">
+                    No threats or objects detected in this image.
+                  </Alert>
+                )}
+                
+                <Box sx={{ mt: 3, textAlign: 'center' }}>
+                  <Button 
+                    variant="outlined" 
+                    href={`${api.defaults.baseURL}/detection/image/${detectionResult.detected_image_path.split('/').pop()}`}
+                    target="_blank"
+                    download
+                  >
+                    Download Detection Results
+                  </Button>
+                </Box>
+              </>
+            )}
+          </Paper>
         </Grid>
       </Grid>
     </Box>

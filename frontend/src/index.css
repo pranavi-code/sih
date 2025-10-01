@@ -5,6 +5,10 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #01182a;
+  background-image: radial-gradient(circle at top right, rgba(7, 79, 110, 0.15) 0%, transparent 60%),
+                    radial-gradient(circle at bottom left, rgba(6, 138, 151, 0.1) 0%, transparent 40%);
+  background-attachment: fixed;
 }
 
 code {
@@ -12,47 +16,147 @@ code {
     monospace;
 }
 
-/* Custom scrollbar for maritime theme */
+/* Custom scrollbar for ocean theme */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #132f4c;
+  background: #01182a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #0277bd;
+  background: #026773;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #58a5f0;
+  background: #05a0b5;
 }
 
-/* Image upload animation */
+/* Image upload animation - less mechanical, more fluid */
 .upload-animation {
-  animation: pulse 2s infinite;
+  animation: waveFade 2.5s ease-in-out infinite;
 }
 
-@keyframes pulse {
+@keyframes waveFade {
   0% {
-    transform: scale(1);
+    transform: scale(1) translateY(0);
+    opacity: 0.9;
   }
   50% {
-    transform: scale(1.05);
+    transform: scale(1.03) translateY(-3px);
+    opacity: 1;
   }
   100% {
-    transform: scale(1);
+    transform: scale(1) translateY(0);
+    opacity: 0.9;
   }
 }
 
-/* Threat detection alerts */
+/* Threat detection alerts - more natural pulsing */
 .critical-alert {
-  animation: blink 1s infinite;
+  animation: naturalPulse 2.5s ease-in-out infinite;
 }
 
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0.3; }
+@keyframes naturalPulse {
+  0% { opacity: 0.7; }
+  40% { opacity: 1; }
+  60% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+/* Ocean-themed colors */
+:root {
+  --ocean-deep: #01182a;
+  --ocean-medium: #026773;
+  --ocean-light: #05a0b5;
+  --ocean-surface: #68c3d4;
+  --coral-accent: #e16f62;
+  --sand-accent: #e7cd90;
+  --success-color: #3e9b6d;
+  --warning-color: #df8e4d;
+  --danger-color: #c25450;
+}
+
+/* Add some imperfection and handcrafted feel */
+.custom-card {
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(1, 24, 42, 0.6);
+}
+
+.custom-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, var(--ocean-medium), var(--ocean-surface), var(--ocean-medium));
+  opacity: 0.8;
+}
+
+/* Add texture to backgrounds for less perfect/AI feel */
+.textured-bg {
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23026773' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E"),
+    linear-gradient(to bottom, rgba(1, 24, 42, 0.8), rgba(2, 103, 115, 0.8));
+}
+
+/* Button styling with subtle inconsistencies */
+.ocean-btn {
+  background: linear-gradient(135deg, var(--ocean-medium), var(--ocean-light));
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.ocean-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: all 0.6s ease;
+}
+
+.ocean-btn:hover::before {
+  left: 100%;
+}
+
+.ocean-btn:hover {
+  box-shadow: 0 5px 15px rgba(5, 160, 181, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Card variations to look less templated */
+.card-variant-1 {
+  border-left: 4px solid var(--ocean-light);
+}
+
+.card-variant-2 {
+  border-top: 4px solid var(--coral-accent);
+}
+
+.card-variant-3 {
+  border-right: 4px solid var(--sand-accent);
+}
+
+/* Subtle motion for background elements */
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
+
+.floating-element {
+  animation: gentleFloat 8s ease-in-out infinite;
 }
