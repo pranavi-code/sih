@@ -50,8 +50,9 @@ os.makedirs("detected", exist_ok=True)  # <-- Add this line
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/enhanced", StaticFiles(directory="enhanced"), name="enhanced")
-app.mount("/detected", StaticFiles(directory="detected"), name="detected")  # <-- Add this line
+app.mount("/files/enhanced", StaticFiles(directory="enhanced"), name="enhanced")
+app.mount("/files/detected", StaticFiles(directory="detected"), name="detected")
+app.mount("/files/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Include API routes
 app.include_router(unified.router, prefix="/api/v1", tags=["Unified Processing"])

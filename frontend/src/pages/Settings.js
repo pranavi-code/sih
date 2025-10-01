@@ -53,7 +53,6 @@ const Settings = () => {
     // Enhancement Settings
     enhancementModel: 'GAN-v2.1',
     qualityTarget: 'high',
-    batchSize: 4,
     gpuAcceleration: true,
     
     // Detection Settings
@@ -67,12 +66,7 @@ const Settings = () => {
     emailNotifications: true,
     smsAlerts: false,
     slackIntegration: true,
-    
-    // Performance Settings
-    maxConcurrentRequests: 10,
-    requestTimeout: 30,
-    cacheEnabled: true,
-    logLevel: 'INFO',
+
   });
 
   const [activeTab, setActiveTab] = useState(0);
@@ -270,9 +264,7 @@ const Settings = () => {
               }}
             >
               <Tab label="AI Models" icon={<PsychologyIcon />} />
-              <Tab label="Performance" icon={<SpeedIcon />} />
               <Tab label="Notifications" icon={<NotificationsIcon />} />
-              <Tab label="System Info" icon={<InfoIcon />} />
             </Tabs>
           </Box>
 
@@ -356,27 +348,6 @@ const Settings = () => {
                                 <MenuItem value="fast">⚡ Fast Processing</MenuItem>
                               </Select>
                             </FormControl>
-
-                            <Typography gutterBottom sx={{ color: '#bcdcff', fontWeight: 'bold' }}>
-                              Batch Size: {settings.batchSize}
-                            </Typography>
-                            <Slider
-                              value={settings.batchSize}
-                              onChange={(e, value) => handleSettingChange('batchSize', value)}
-                              min={1}
-                              max={16}
-                              marks
-                              valueLabelDisplay="auto"
-                              sx={{
-                                mb: 3,
-                                '& .MuiSlider-thumb': {
-                                  backgroundColor: '#7ecfff',
-                                  '&:hover': { boxShadow: '0 0 0 8px rgba(126,207,255,0.16)' }
-                                },
-                                '& .MuiSlider-track': { backgroundColor: '#7ecfff' },
-                                '& .MuiSlider-rail': { backgroundColor: 'rgba(126,207,255,0.3)' }
-                              }}
-                            />
 
                             <FormControlLabel
                               control={
@@ -534,231 +505,17 @@ const Settings = () => {
             {/* Performance Tab */}
             <TabPanel value={activeTab} index={1}>
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Zoom in={activeTab === 1} timeout={1000}>
-                    <Paper sx={{
-                      p: 3,
-                      bgcolor: 'rgba(31,60,112,0.5)',
-                      borderRadius: 3,
-                      border: '1px solid rgba(126,207,255,0.2)',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        borderColor: '#4caf50',
-                        boxShadow: '0 10px 30px rgba(76,175,80,0.2)'
-                      }
-                    }}>
-                      <Typography variant="h6" gutterBottom sx={{
-                        fontWeight: 'bold',
-                        color: '#4caf50',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        mb: 3
-                      }}>
-                        <SpeedIcon sx={{ animation: 'pulse 2s infinite' }} />
-                        ⚡ Performance Settings
-                      </Typography>
 
-                      <TextField
-                        fullWidth
-                        label="Max Concurrent Requests"
-                        type="number"
-                        value={settings.maxConcurrentRequests}
-                        onChange={(e) => handleSettingChange('maxConcurrentRequests', parseInt(e.target.value) || 10)}
-                        sx={{
-                          mb: 3,
-                          '& .MuiOutlinedInput-root': {
-                            color: '#fff',
-                            '& fieldset': { borderColor: '#4caf50' },
-                            '&:hover fieldset': { borderColor: '#4caf50' },
-                            '&.Mui-focused fieldset': { borderColor: '#4caf50' }
-                          },
-                          '& .MuiInputLabel-root': { color: '#4caf50' }
-                        }}
-                        inputProps={{ min: 1, max: 50 }}
-                      />
 
-                      <TextField
-                        fullWidth
-                        label="Request Timeout (seconds)"
-                        type="number"
-                        value={settings.requestTimeout}
-                        onChange={(e) => handleSettingChange('requestTimeout', parseInt(e.target.value) || 30)}
-                        sx={{
-                          mb: 3,
-                          '& .MuiOutlinedInput-root': {
-                            color: '#fff',
-                            '& fieldset': { borderColor: '#4caf50' },
-                            '&:hover fieldset': { borderColor: '#4caf50' },
-                            '&.Mui-focused fieldset': { borderColor: '#4caf50' }
-                          },
-                          '& .MuiInputLabel-root': { color: '#4caf50' }
-                        }}
-                        inputProps={{ min: 5, max: 300 }}
-                      />
 
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={settings.cacheEnabled}
-                            onChange={(e) => handleSettingChange('cacheEnabled', e.target.checked)}
-                            sx={{
-                              '& .MuiSwitch-switchBase.Mui-checked': { color: '#4caf50' },
-                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#4caf50' }
-                            }}
-                          />
-                        }
-                        label={
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography>💾 Enable Caching</Typography>
-                            <Chip label="Performance Boost" size="small" sx={{ backgroundColor: '#4caf50', color: 'white' }} />
-                          </Box>
-                        }
-                        sx={{ mb: 3 }}
-                      />
-
-                      <FormControl fullWidth>
-                        <InputLabel sx={{ color: '#4caf50' }}>Log Level</InputLabel>
-                        <Select
-                          value={settings.logLevel}
-                          label="Log Level"
-                          onChange={(e) => handleSettingChange('logLevel', e.target.value)}
-                          sx={{
-                            color: '#fff',
-                            '& .MuiOutlinedInput-notchedOutline': { borderColor: '#4caf50' },
-                            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#4caf50' },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#4caf50' }
-                          }}
-                        >
-                          <MenuItem value="DEBUG">🐛 Debug</MenuItem>
-                          <MenuItem value="INFO">ℹ️ Info</MenuItem>
-                          <MenuItem value="WARNING">⚠️ Warning</MenuItem>
-                          <MenuItem value="ERROR">❌ Error</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Paper>
-                  </Zoom>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Zoom in={activeTab === 1} timeout={1200}>
-                    <Paper sx={{
-                      p: 3,
-                      bgcolor: 'rgba(31,60,112,0.5)',
-                      borderRadius: 3,
-                      border: '1px solid rgba(126,207,255,0.2)',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        borderColor: '#ff9800',
-                        boxShadow: '0 10px 30px rgba(255,152,0,0.2)'
-                      }
-                    }}>
-                      <Typography variant="h6" gutterBottom sx={{
-                        fontWeight: 'bold',
-                        color: '#ff9800',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        mb: 3
-                      }}>
-                        <ComputerIcon sx={{ animation: 'pulse 2s infinite 0.5s' }} />
-                        🖥️ System Resources
-                      </Typography>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="body2" sx={{ color: '#bcdcff', mb: 1 }}>CPU Usage</Typography>
-                        <Box sx={{ 
-                          width: '100%', 
-                          height: 20, 
-                          bgcolor: 'rgba(255,152,0,0.2)', 
-                          borderRadius: 2,
-                          position: 'relative',
-                          overflow: 'hidden'
-                        }}>
-                          <Box sx={{
-                            width: '45%',
-                            height: '100%',
-                            bgcolor: '#ff9800',
-                            borderRadius: 2,
-                            animation: 'slideIn 2s ease-out',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontSize: 12,
-                            fontWeight: 'bold'
-                          }}>
-                            45%
-                          </Box>
-                        </Box>
-                      </Box>
-
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="body2" sx={{ color: '#bcdcff', mb: 1 }}>Memory Usage</Typography>
-                        <Box sx={{ 
-                          width: '100%', 
-                          height: 20, 
-                          bgcolor: 'rgba(156,39,176,0.2)', 
-                          borderRadius: 2,
-                          position: 'relative',
-                          overflow: 'hidden'
-                        }}>
-                          <Box sx={{
-                            width: '62%',
-                            height: '100%',
-                            bgcolor: '#9c27b0',
-                            borderRadius: 2,
-                            animation: 'slideIn 2s ease-out 0.5s both',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontSize: 12,
-                            fontWeight: 'bold'
-                          }}>
-                            62%
-                          </Box>
-                        </Box>
-                      </Box>
-
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" sx={{ color: '#bcdcff', mb: 1 }}>GPU Usage</Typography>
-                        <Box sx={{ 
-                          width: '100%', 
-                          height: 20, 
-                          bgcolor: 'rgba(244,67,54,0.2)', 
-                          borderRadius: 2,
-                          position: 'relative',
-                          overflow: 'hidden'
-                        }}>
-                          <Box sx={{
-                            width: '78%',
-                            height: '100%',
-                            bgcolor: '#f44336',
-                            borderRadius: 2,
-                            animation: 'slideIn 2s ease-out 1s both',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontSize: 12,
-                            fontWeight: 'bold'
-                          }}>
-                            78%
-                          </Box>
-                        </Box>
-                      </Box>
-                    </Paper>
-                  </Zoom>
-                </Grid>
               </Grid>
             </TabPanel>
 
             {/* Notifications Tab */}
-            <TabPanel value={activeTab} index={2}>
+            <TabPanel value={activeTab} index={1}>
               <Grid container spacing={3}>
                 <Grid item xs={12}>
-                  <Zoom in={activeTab === 2} timeout={1000}>
+                  <Zoom in={activeTab === 1} timeout={1000}>
                     <Paper sx={{
                       p: 4,
                       bgcolor: 'rgba(31,60,112,0.5)',
@@ -790,7 +547,7 @@ const Settings = () => {
                           { key: 'slackIntegration', label: '💬 Slack Integration', desc: 'Post alerts to Slack channels' }
                         ].map((item, index) => (
                           <Grid item xs={12} md={6} key={item.key}>
-                            <Slide direction="up" in={activeTab === 2} timeout={1000 + index * 200}>
+                            <Slide direction="up" in={activeTab === 1} timeout={1000 + index * 200}>
                               <Paper sx={{
                                 p: 3,
                                 bgcolor: 'rgba(22,43,77,0.3)',
@@ -835,190 +592,7 @@ const Settings = () => {
               </Grid>
             </TabPanel>
 
-            {/* System Info Tab */}
-            <TabPanel value={activeTab} index={3}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Zoom in={activeTab === 3} timeout={1000}>
-                    <Paper sx={{
-                      p: 3,
-                      bgcolor: 'rgba(31,60,112,0.5)',
-                      borderRadius: 3,
-                      border: '1px solid rgba(126,207,255,0.2)',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        borderColor: '#00bcd4',
-                        boxShadow: '0 10px 30px rgba(0,188,212,0.2)'
-                      }
-                    }}>
-                      <Typography variant="h6" gutterBottom sx={{
-                        fontWeight: 'bold',
-                        color: '#00bcd4',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        mb: 3
-                      }}>
-                        <InfoIcon sx={{ animation: 'pulse 2s infinite' }} />
-                        📊 System Information
-                      </Typography>
 
-                      <List>
-                        {Object.entries(systemInfo).map(([key, value], index) => (
-                          <Slide key={key} direction="right" in={activeTab === 3} timeout={1000 + index * 200}>
-                            <ListItem sx={{
-                              borderRadius: 2,
-                              mb: 1,
-                              bgcolor: 'rgba(22,43,77,0.3)',
-                              transition: 'all 0.3s ease',
-                              '&:hover': {
-                                bgcolor: 'rgba(0,188,212,0.1)',
-                                transform: 'translateX(8px)'
-                              }
-                            }}>
-                              <ListItemText 
-                                primary={
-                                  <Typography sx={{ fontWeight: 'bold', color: '#00bcd4' }}>
-                                    {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                                  </Typography>
-                                }
-                                secondary={<Typography sx={{ color: '#bcdcff' }}>{value}</Typography>}
-                              />
-                            </ListItem>
-                          </Slide>
-                        ))}
-                      </List>
-
-                      <Fade in={activeTab === 3} timeout={2000}>
-                        <Alert 
-                          severity="success" 
-                          sx={{
-                            mt: 3,
-                            bgcolor: 'rgba(76,175,80,0.2)',
-                            color: '#4caf50',
-                            border: '1px solid rgba(76,175,80,0.3)'
-                          }}
-                        >
-                          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                            ✅ System is running optimally. Last health check: 2 minutes ago
-                          </Typography>
-                        </Alert>
-                      </Fade>
-                    </Paper>
-                  </Zoom>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Zoom in={activeTab === 3} timeout={1200}>
-                    <Paper sx={{
-                      p: 3,
-                      bgcolor: 'rgba(31,60,112,0.5)',
-                      borderRadius: 3,
-                      border: '1px solid rgba(126,207,255,0.2)',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        borderColor: '#673ab7',
-                        boxShadow: '0 10px 30px rgba(103,58,183,0.2)'
-                      }
-                    }}>
-                      <Typography variant="h6" gutterBottom sx={{
-                        fontWeight: 'bold',
-                        color: '#673ab7',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        mb: 3
-                      }}>
-                        <TuneIcon sx={{ animation: 'pulse 2s infinite 0.5s' }} />
-                        🤖 Model Status & Management
-                      </Typography>
-
-                      <List>
-                        <Slide direction="left" in={activeTab === 3} timeout={1000}>
-                          <ListItem sx={{
-                            borderRadius: 2,
-                            mb: 2,
-                            bgcolor: 'rgba(22,43,77,0.3)',
-                            transition: 'all 0.3s ease',
-                            '&:hover': { bgcolor: 'rgba(103,58,183,0.1)' }
-                          }}>
-                            <ListItemText 
-                              primary={
-                                <Typography sx={{ fontWeight: 'bold', color: '#fff' }}>
-                                  Enhancement Model
-                                </Typography>
-                              }
-                              secondary={
-                                <Typography sx={{ color: '#bcdcff' }}>
-                                  GAN v2.1 - Last updated: 2025-09-20
-                                </Typography>
-                              }
-                            />
-                            <ListItemSecondaryAction>
-                              <Chip label="✅ Loaded" sx={{ backgroundColor: '#4caf50', color: 'white' }} size="small" />
-                            </ListItemSecondaryAction>
-                          </ListItem>
-                        </Slide>
-                        
-                        <Slide direction="left" in={activeTab === 3} timeout={1200}>
-                          <ListItem sx={{
-                            borderRadius: 2,
-                            mb: 2,
-                            bgcolor: 'rgba(22,43,77,0.3)',
-                            transition: 'all 0.3s ease',
-                            '&:hover': { bgcolor: 'rgba(103,58,183,0.1)' }
-                          }}>
-                            <ListItemText 
-                              primary={
-                                <Typography sx={{ fontWeight: 'bold', color: '#fff' }}>
-                                  Detection Model
-                                </Typography>
-                              }
-                              secondary={
-                                <Typography sx={{ color: '#bcdcff' }}>
-                                  YOLO v8 Underwater - Last updated: 2025-09-18
-                                </Typography>
-                              }
-                            />
-                            <ListItemSecondaryAction>
-                              <Chip label="✅ Loaded" sx={{ backgroundColor: '#4caf50', color: 'white' }} size="small" />
-                            </ListItemSecondaryAction>
-                          </ListItem>
-                        </Slide>
-                      </List>
-
-                      <Box sx={{ mt: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                        {[
-                          { icon: <RestartIcon />, label: 'Reload Models', color: '#ff9800' },
-                          { icon: <UploadIcon />, label: 'Update Models', color: '#2196f3' }
-                        ].map((btn, index) => (
-                          <Tooltip key={btn.label} title={btn.label}>
-                            <Button
-                              variant="outlined"
-                              startIcon={btn.icon}
-                              size="small"
-                              sx={{
-                                color: btn.color,
-                                borderColor: btn.color,
-                                transition: 'all 0.3s ease',
-                                '&:hover': {
-                                  backgroundColor: btn.color,
-                                  color: 'white',
-                                  transform: 'translateY(-2px)',
-                                  boxShadow: `0 8px 25px ${btn.color}30`
-                                }
-                              }}
-                            >
-                              {btn.label}
-                            </Button>
-                          </Tooltip>
-                        ))}
-                      </Box>
-                    </Paper>
-                  </Zoom>
-                </Grid>
-              </Grid>
-            </TabPanel>
           </CardContent>
         </Card>
       </Slide>

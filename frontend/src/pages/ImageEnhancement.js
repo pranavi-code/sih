@@ -20,6 +20,7 @@ import {
   Fade,
   Slide,
   Zoom,
+  IconButton,
 } from '@mui/material';
 import {
   CloudUpload as CloudUploadIcon,
@@ -253,6 +254,7 @@ const ImageEnhancement = () => {
                   Upload Underwater Image
                 </Typography>
                 
+              {!selectedFile ? (
                 <Paper
                   {...getRootProps()}
                   sx={{
@@ -305,19 +307,47 @@ const ImageEnhancement = () => {
                     Supported: JPEG, PNG, BMP, TIFF (max 10MB)
                   </Typography>
                 </Paper>
-
-                {selectedFile && (
+              ) : (
+                <Paper sx={{
+                  p: 3,
+                  textAlign: 'center',
+                  borderRadius: 2,
+                  backgroundColor: '#162b4d',
+                  border: '2px solid #7ecfff'
+                }}>
+                  <Box sx={{ mb: 2, position: 'relative', display: 'inline-block' }}>
+                    <img 
+                      src={URL.createObjectURL(selectedFile)} 
+                      alt="Selected" 
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '300px',
+                        borderRadius: '8px',
+                        objectFit: 'contain'
+                      }}
+                    />
+                    <IconButton
+                      onClick={() => setSelectedFile(null)}
+                      sx={{
+                        position: 'absolute',
+                        top: -10,
+                        right: -10,
+                        backgroundColor: '#f44336',
+                        color: 'white',
+                        '&:hover': { backgroundColor: '#d32f2f' }
+                      }}
+                      size="small"
+                    >
+                      ✕
+                    </IconButton>
+                  </Box>
+                  <Typography variant="body2" sx={{ color: '#bcdcff' }}>
+                    <strong>Selected:</strong> {selectedFile.name} ({utils.formatFileSize(selectedFile.size)})
+                  </Typography>
+                </Paper>
+              )}                {selectedFile && (
                   <Fade in={Boolean(selectedFile)} timeout={800}>
                     <Box sx={{ mt: 2 }}>
-                      <Alert 
-                        severity="info" 
-                        sx={{ 
-                          mb: 2,
-                          animation: 'slideInFromLeft 0.5s ease-out'
-                        }}
-                      >
-                        <strong>Selected:</strong> {selectedFile.name} ({utils.formatFileSize(selectedFile.size)})
-                      </Alert>
                       
                       <Button
                         variant="contained"

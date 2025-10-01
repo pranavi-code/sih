@@ -11,7 +11,7 @@ import shutil
 import logging
 from datetime import datetime
 
-from app.services.enhancement_service import EnhancementService
+from app.services.enhancement_service import ImageEnhancementService
 from app.services.threat_detection_service import ThreatDetectionService
 from app.core.config import settings
 
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Global service instances
-enhancement_service = EnhancementService()
+enhancement_service = ImageEnhancementService()
 detection_service = ThreatDetectionService()
 
 # Define the upload directory

@@ -23,6 +23,7 @@ import {
   Fade,
   Slide,
   Zoom,
+  IconButton,
 } from '@mui/material';
 import {
   CloudUpload as CloudUploadIcon,
@@ -120,11 +121,27 @@ const UnifiedProcessing = () => {
     try {
       setActiveStep(2);
       const detectionResult = await detectionAPI.processDetection(selectedFile, 0.5, true);
-      if (detectionResult.annotated_image) {
-        const filename = detectionResult.annotated_image.replace(/\\/g, '/').split('/').pop();
-        const imageBlob = await detectionAPI.getDetectedImage(filename);
-        const url = utils.createImageUrl(imageBlob);
-        setDetectedImageUrl(url);
+      console.log('🔍 Detection result:', detectionResult);
+      
+      if (detectionResult.annotated_image || detectionResult.detected_image_path) {
+        const imagePath = detectionResult.annotated_image || detectionResult.detected_image_path;
+        const filename = imagePath.replace(/\\/g, '/').split('/').pop();
+        console.log('📷 Detected image filename:', filename);
+        
+        try {
+          const imageBlob = await detectionAPI.getDetectedImage(filename);
+          if (imageBlob) {
+            const url = utils.createImageUrl(imageBlob);
+            console.log('🖼️ Created detected image URL:', url);
+            setDetectedImageUrl(url);
+          }
+        } catch (error) {
+          console.error('❌ Error loading detected image:', error);
+          // Fallback to direct URL
+          const directUrl = utils.getImageUrl(`detected/${filename}`);
+          console.log('🔄 Using direct URL fallback:', directUrl);
+          setDetectedImageUrl(directUrl);
+        }
       }
       setResults(detectionResult);
       setProcessing(false);
@@ -308,71 +325,102 @@ const UnifiedProcessing = () => {
                   Upload Underwater Image
                 </Typography>
                 
-                <Paper
-                  {...getRootProps()}
-                  sx={{
-                    p: 4,
-                    textAlign: 'center',
-                    border: '2px dashed',
-                    borderColor: isDragActive ? '#7ecfff' : 'rgba(126,207,255,0.3)',
-                    backgroundColor: isDragActive ? '#22335b' : '#162b4d',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    borderRadius: 2,
-                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&:hover': {
-                      borderColor: '#7ecfff',
-                      backgroundColor: '#22335b',
-                      transform: 'scale(1.02)',
+                {!selectedFile ? (
+                  <Paper
+                    {...getRootProps()}
+                    sx={{
+                      p: 4,
+                      textAlign: 'center',
+                      border: '2px dashed',
+                      borderColor: isDragActive ? '#7ecfff' : 'rgba(126,207,255,0.3)',
+                      backgroundColor: isDragActive ? '#22335b' : '#162b4d',
+                      color: '#fff',
+                      cursor: 'pointer',
+                      borderRadius: 2,
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&:hover': {
+                        borderColor: '#7ecfff',
+                        backgroundColor: '#22335b',
+                        transform: 'scale(1.02)',
+                        '&::before': {
+                          opacity: 1
+                        }
+                      },
                       '&::before': {
-                        opacity: 1
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'linear-gradient(45deg, rgba(126,207,255,0.1) 0%, rgba(63,120,199,0.1) 100%)',
+                        opacity: 0,
+                        transition: 'opacity 0.3s ease'
                       }
-                    },
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      background: 'linear-gradient(45deg, rgba(126,207,255,0.1) 0%, rgba(63,120,199,0.1) 100%)',
-                      opacity: 0,
-                      transition: 'opacity 0.3s ease'
-                    }
-                  }}
-                >
-                  <input {...getInputProps()} />
-                  <CloudUploadIcon sx={{ 
-                    fontSize: 48, 
-                    color: '#7ecfff', 
-                    mb: 2,
-                    animation: isDragActive ? 'bounce 0.6s infinite' : 'none'
-                  }} />
-                  <Typography variant="h6" gutterBottom sx={{ position: 'relative', zIndex: 1 }}>
-                    {isDragActive ? 'Drop the image here' : 'Drag & drop underwater image'}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#bcdcff', position: 'relative', zIndex: 1 }} gutterBottom>
-                    or click to select from your computer
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#bcdcff', position: 'relative', zIndex: 1 }}>
-                    Supported: JPEG, PNG, BMP, TIFF (max 10MB)
-                  </Typography>
-                </Paper>
+                    }}
+                  >
+                    <input {...getInputProps()} />
+                    <CloudUploadIcon sx={{ 
+                      fontSize: 48, 
+                      color: '#7ecfff', 
+                      mb: 2,
+                      animation: isDragActive ? 'bounce 0.6s infinite' : 'none'
+                    }} />
+                    <Typography variant="h6" gutterBottom sx={{ position: 'relative', zIndex: 1 }}>
+                      {isDragActive ? 'Drop the image here' : 'Drag & drop underwater image'}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#bcdcff', position: 'relative', zIndex: 1 }} gutterBottom>
+                      or click to select from your computer
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#bcdcff', position: 'relative', zIndex: 1 }}>
+                      Supported: JPEG, PNG, BMP, TIFF (max 10MB)
+                    </Typography>
+                  </Paper>
+                ) : (
+                  <Paper sx={{
+                    p: 3,
+                    textAlign: 'center',
+                    borderRadius: 2,
+                    backgroundColor: '#162b4d',
+                    border: '2px solid #7ecfff'
+                  }}>
+                    <Box sx={{ mb: 2, position: 'relative', display: 'inline-block' }}>
+                      <img 
+                        src={URL.createObjectURL(selectedFile)} 
+                        alt="Selected" 
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '300px',
+                          borderRadius: '8px',
+                          objectFit: 'contain'
+                        }}
+                      />
+                      <IconButton
+                        onClick={() => setSelectedFile(null)}
+                        sx={{
+                          position: 'absolute',
+                          top: -10,
+                          right: -10,
+                          backgroundColor: '#f44336',
+                          color: 'white',
+                          '&:hover': { backgroundColor: '#d32f2f' }
+                        }}
+                        size="small"
+                      >
+                        ✕
+                      </IconButton>
+                    </Box>
+                    <Typography variant="body2" sx={{ color: '#bcdcff' }}>
+                      <strong>Selected:</strong> {selectedFile.name} ({utils.formatFileSize(selectedFile.size)})
+                    </Typography>
+                  </Paper>
+                )}
 
                 {selectedFile && (
                   <Fade in={Boolean(selectedFile)} timeout={800}>
                     <Box sx={{ mt: 2 }}>
-                      <Alert 
-                        severity="info" 
-                        sx={{ 
-                          mb: 2,
-                          animation: 'slideInFromLeft 0.5s ease-out'
-                        }}
-                      >
-                        <strong>Selected:</strong> {selectedFile.name} ({utils.formatFileSize(selectedFile.size)})
-                      </Alert>
                       
                       {originalImageUrl && (
                         <Zoom in={Boolean(originalImageUrl)} timeout={600}>

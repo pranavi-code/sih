@@ -2,7 +2,7 @@
 API routes for threat detection functionality
 """
 
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks, Query
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks, Query, Request
 from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
 from typing import Optional, List
@@ -32,16 +32,26 @@ class DetectionResponse(BaseModel):
 async def detect_threats(
     background_tasks: BackgroundTasks,
     image: UploadFile = File(...),
-    confidence: float = Query(0.5, ge=0.1, le=1.0),
-    nms_threshold: float = Query(0.4, ge=0.1, le=1.0),
-    max_detections: int = Query(20, ge=1, le=100),
-    use_enhanced: bool = Form(True)
+    confidence: Optional[float] = Form(None),
+    nms_threshold: Optional[float] = Form(None),
+    max_detections: Optional[int] = Form(None),
+    use_enhanced: Optional[bool] = Form(None),
+    # Also accept as query parameters for compatibility
+    confidence_query: Optional[float] = Query(None, alias="confidence"),
+    nms_threshold_query: Optional[float] = Query(None, alias="nms_threshold"),
+    max_detections_query: Optional[int] = Query(None, alias="max_detections")
 ):
     """
     Detect threats in an uploaded image.
     If use_enhanced is True, it will look for an enhanced version of the image to use.
     """
     try:
+        # Use parameters from either form or query (form takes precedence)
+        final_confidence = confidence if confidence is not None else (confidence_query if confidence_query is not None else 0.5)
+        final_nms_threshold = nms_threshold if nms_threshold is not None else (nms_threshold_query if nms_threshold_query is not None else 0.4)
+        final_max_detections = max_detections if max_detections is not None else (max_detections_query if max_detections_query is not None else 20)
+        final_use_enhanced = use_enhanced if use_enhanced is not None else True
+        
         # Create timestamp for unique filename
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{timestamp}_{image.filename}"
@@ -86,6 +96,7 @@ async def detect_threats(
         return {
             "success": True,
             "detected_image_path": result["detected_image_path"],
+            "annotated_image": result["detected_image_path"],  # For frontend compatibility
             "detections": result["detections"],
             "total_detections": result["total_detections"]
         }
@@ -100,6 +111,31 @@ async def detect_threats(
                 "traceback": traceback.format_exc()
             }
         )
+
+@router.get("/test")
+async def test_detection():
+    """Test detection service"""
+    return {
+        "service_loaded": detection_service.is_loaded,
+        "model_available": detection_service.model is not None,
+        "detection_dir": detection_service.detection_dir
+    }
+
+@router.post("/debug-detect")
+async def debug_detect(request: Request):
+    """Debug endpoint to see what we're receiving"""
+    body = await request.body()
+    headers = dict(request.headers)
+    query_params = dict(request.query_params)
+    
+    return {
+        "method": request.method,
+        "url": str(request.url),
+        "headers": headers,
+        "query_params": query_params,
+        "body_length": len(body),
+        "content_type": headers.get("content-type", "unknown")
+    }
 
 @router.get("/image/{path:path}")
 async def get_image(path: str):
