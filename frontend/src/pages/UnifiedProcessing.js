@@ -350,7 +350,7 @@ const UnifiedProcessing = () => {
               }
             }}
           >
-            🌊 Unified Maritime Image Processing
+             Unified Maritime Image Processing
           </Typography>
           <Typography
             align="center"

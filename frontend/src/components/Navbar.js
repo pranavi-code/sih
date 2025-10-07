@@ -79,7 +79,7 @@ const Navbar = () => {
 
   const navigationItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Unified Processing', icon: <AutoFixHighIcon />, path: '/processing' },
+    { text: 'Enhancement & Detection', icon: <AutoFixHighIcon />, path: '/processing' },
     { text: 'Model Management', icon: <MemoryIcon />, path: '/models' },
     { text: 'Image Enhancement', icon: <PhotoCameraIcon />, path: '/enhancement' },
     { text: 'Threat Detection', icon: <SecurityIcon />, path: '/detection' },
@@ -97,7 +97,7 @@ const Navbar = () => {
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
         }}>
-          Maritime AI System
+          जलनेत्र
         </Typography>
       </Toolbar>
       <Divider />

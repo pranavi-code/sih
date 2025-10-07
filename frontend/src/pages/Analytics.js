@@ -157,7 +157,7 @@ const Analytics = () => {
               }
             }}
           >
-            📊 System Analytics & Performance
+             System Analytics & Performance
           </Typography>
           <Typography
             align="center"
@@ -500,7 +500,7 @@ const Analytics = () => {
                 gap: 1,
                 mb: 3
               }}>
-                <SecurityIcon /> 🛡️ Threat Detection Analysis
+                <SecurityIcon />  Threat Detection Analysis
               </Typography>
               
               <Grid container spacing={3}>

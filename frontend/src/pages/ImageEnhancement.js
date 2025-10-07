@@ -313,7 +313,7 @@ const ImageEnhancement = () => {
               }
             }}
           >
-            🎨 Underwater Image Enhancement
+             Underwater Image Enhancement
           </Typography>
           <Typography
             align="center"

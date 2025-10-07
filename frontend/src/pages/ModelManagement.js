@@ -564,7 +564,7 @@ const ModelManagement = () => {
               }
             }}
           >
-            💻 Model Management
+             Model Management
           </Typography>
           <Typography
             align="center"
