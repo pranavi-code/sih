@@ -194,7 +194,7 @@ const Settings = () => {
               }
             }}
           >
-            ⚙️ System Settings & Configuration
+             System Settings & Configuration
           </Typography>
           <Typography
             align="center"
@@ -301,7 +301,7 @@ const Settings = () => {
                           gap: 1
                         }}>
                           <PsychologyIcon sx={{ animation: 'pulse 2s infinite' }} />
-                          🎨 Image Enhancement
+                           Image Enhancement
                         </Typography>
                         <IconButton size="small" sx={{ color: '#7ecfff' }}>
                           {expandedSections.enhancement ? <ExpandLessIcon /> : <ExpandMoreIcon />}
@@ -324,7 +324,7 @@ const Settings = () => {
                                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#7ecfff' }
                                 }}
                               >
-                                <MenuItem value="GAN-v2.1">🚀 GAN v2.1 (Recommended)</MenuItem>
+                                <MenuItem value="GAN-v2.1"> GAN v2.1 (Recommended)</MenuItem>
                                 <MenuItem value="GAN-v2.0">GAN v2.0</MenuItem>
                                 <MenuItem value="U-Net">U-Net</MenuItem>
                               </Select>
@@ -343,9 +343,9 @@ const Settings = () => {
                                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#7ecfff' }
                                 }}
                               >
-                                <MenuItem value="high">⭐ High Quality (Slower)</MenuItem>
-                                <MenuItem value="balanced">⚖️ Balanced</MenuItem>
-                                <MenuItem value="fast">⚡ Fast Processing</MenuItem>
+                                <MenuItem value="high"> High Quality (Slower)</MenuItem>
+                                <MenuItem value="balanced"> Balanced</MenuItem>
+                                <MenuItem value="fast"> Fast Processing</MenuItem>
                               </Select>
                             </FormControl>
 
@@ -362,7 +362,7 @@ const Settings = () => {
                               }
                               label={
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Typography>🚀 GPU Acceleration</Typography>
+                                  <Typography> GPU Acceleration</Typography>
                                   <Chip label="Recommended" size="small" color="primary" />
                                 </Box>
                               }
@@ -426,7 +426,7 @@ const Settings = () => {
                                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#ff6b6b' }
                                 }}
                               >
-                                <MenuItem value="YOLOv8-underwater">🎯 YOLO v8 Underwater (Recommended)</MenuItem>
+                                <MenuItem value="YOLOv8-underwater"> YOLO v8 Underwater (Recommended)</MenuItem>
                                 <MenuItem value="YOLOv11">YOLO v11</MenuItem>
                                 <MenuItem value="RCNN">R-CNN</MenuItem>
                               </Select>
@@ -476,7 +476,7 @@ const Settings = () => {
                               }}
                             />
 
-                            <TextField
+                            {/* <TextField
                               fullWidth
                               label="Maximum Detections"
                               type="number"
@@ -492,7 +492,7 @@ const Settings = () => {
                                 },
                                 '& .MuiInputLabel-root': { color: '#ff6b6b' }
                               }}
-                            />
+                            /> */}
                           </Box>
                         </Fade>
                       </Collapse>
@@ -536,15 +536,15 @@ const Settings = () => {
                         mb: 4
                       }}>
                         <NotificationsIcon sx={{ animation: 'pulse 2s infinite' }} />
-                        🔔 Alert & Notification Settings
+                         Alert & Notification Settings
                       </Typography>
 
                       <Grid container spacing={3}>
                         {[
-                          { key: 'criticalThreatNotification', label: '🚨 Critical Threat Notifications', desc: 'Immediate alerts for high-risk threats' },
-                          { key: 'emailNotifications', label: '📧 Email Notifications', desc: 'Send detection reports via email' },
-                          { key: 'smsAlerts', label: '📱 SMS Alerts', desc: 'Text message alerts for urgent threats' },
-                          { key: 'slackIntegration', label: '💬 Slack Integration', desc: 'Post alerts to Slack channels' }
+                          { key: 'criticalThreatNotification', label: ' Critical Threat Notifications', desc: 'Immediate alerts for high-risk threats' },
+                          { key: 'emailNotifications', label: ' Email Notifications', desc: 'Send detection reports via email' },
+                          { key: 'smsAlerts', label: ' SMS Alerts', desc: 'Text message alerts for urgent threats' },
+                          { key: 'slackIntegration', label: ' Slack Integration', desc: 'Post alerts to Slack channels' }
                         ].map((item, index) => (
                           <Grid item xs={12} md={6} key={item.key}>
                             <Slide direction="up" in={activeTab === 1} timeout={1000 + index * 200}>
@@ -616,7 +616,7 @@ const Settings = () => {
             mb: 3
           }}>
             <SettingsIcon sx={{ animation: 'spin 4s linear infinite' }} />
-            🔧 Configuration Management
+             Configuration Management
           </Typography>
           
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
@@ -686,7 +686,7 @@ const Settings = () => {
               }}
             >
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                ⚠️ <strong>Note:</strong> Some settings require a system restart to take effect. 
+                 <strong>Note:</strong> Some settings require a system restart to take effect. 
                 Critical detection settings will be applied immediately.
               </Typography>
             </Alert>

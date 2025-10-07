@@ -309,7 +309,7 @@ const ThreatDetection = () => {
               }
             }}
           >
-            🚨 Maritime Threat Detection
+             Maritime Threat Detection
           </Typography>
           <Typography
             align="center"
